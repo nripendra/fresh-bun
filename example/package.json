@@ -1,0 +1,19 @@
+{
+  "name": "example",
+  "module": "index.ts",
+  "type": "module",
+  "scripts": {
+    "dev": "NODE_ENV=development bun --watch index.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "daisyui": "^4.12.13",
+    "tailwind": "^4.0.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "arktype": "^2.0.0-rc.17"
+  }
+}

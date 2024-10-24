@@ -1,0 +1,18 @@
+{
+  "name": "@fresh-bun/routing",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "htmx.org": "2.0.3"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@fresh-bun/lib": "workspace:*",
+    "@preact/signals": "^1.3.0",
+    "preact": "^10.24.2",
+    "preact-render-to-string": "^6.5.11"
+  }
+}

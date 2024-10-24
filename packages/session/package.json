@@ -1,0 +1,13 @@
+{
+  "name": "session",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0",
+    "@fresh-bun/lib": "workspace:*",
+    "@fresh-bun/cookies": "workspace:*"
+  }
+}
