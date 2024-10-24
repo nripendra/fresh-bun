@@ -24,8 +24,5 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false,
-    "paths": {
-      "@fresh-bun/*": ["../packages/*"] // enables us to use @components/MyComponent
-    }
   }
 }

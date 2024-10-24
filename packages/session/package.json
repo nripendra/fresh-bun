@@ -1,5 +1,5 @@
 {
-  "name": "session",
+  "name": "@fresh-bun/session",
   "module": "index.ts",
   "type": "module",
   "devDependencies": {

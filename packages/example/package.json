@@ -14,6 +14,11 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "arktype": "^2.0.0-rc.17"
+    "arktype": "^2.0.0-rc.17",
+    "@fresh-bun/lib": "workspace:*",
+    "@fresh-bun/cookies": "workspace:*",
+    "@fresh-bun/routing": "workspace:*",
+    "@fresh-bun/runtime": "workspace:*",
+    "@fresh-bun/session": "workspace:*"
   }
 }
