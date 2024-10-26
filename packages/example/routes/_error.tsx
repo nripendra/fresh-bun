@@ -1,6 +1,6 @@
+import { SafeHttpError } from "@fresh-bun/lib/safe-http-errors";
 import { definePage } from "@fresh-bun/routing/pages";
 import LayoutProvider from "@fresh-bun/routing/pages/layout-provider";
-import { SafeHttpError } from "@fresh-bun/lib/safe-http-errors";
 
 interface ErrorData {
   error: unknown;
@@ -25,9 +25,8 @@ export default definePage<ErrorData>(({ ctx, data }) => {
             {(() => {
               if (error instanceof SafeHttpError) {
                 return error.message;
-              } else {
-                return "Some error occured while processing this request.";
               }
+              return "Some error occured while processing this request.";
             })()}
           </div>
           <div className={"mt-6"}>
@@ -35,7 +34,7 @@ export default definePage<ErrorData>(({ ctx, data }) => {
             {ctx.server.development ? (
               <div className={"border border-gray-500 mt-6 p-5"}>
                 <code>
-                  <pre>{(error as any).stack}</pre>
+                  <pre>{(error as Error).stack}</pre>
                 </code>
               </div>
             ) : (

@@ -1,9 +1,10 @@
 import { cookie } from "@fresh-bun/cookies/cookie-jar";
-import { registerHyperAwareness } from "@fresh-bun/routing/pages/hyper-media-helper";
+import { LogLevel, Logger } from "@fresh-bun/lib/logging";
+import { registerHyperMediaAwareness } from "@fresh-bun/routing/pages/hyper-media-helper";
 import { FreshBun } from "@fresh-bun/runtime";
 import { session, sessionAuthentication } from "@fresh-bun/session";
 
-registerHyperAwareness({
+registerHyperMediaAwareness({
   isHyperMediaAjaxRequest(ctx) {
     return (
       ctx.request.headers.has("HX-Boosted") ||
@@ -13,6 +14,7 @@ registerHyperAwareness({
 });
 
 const rootDir = import.meta.dir;
+Logger.setLogLevel(LogLevel.INFO);
 
 const server = await FreshBun.create({
   rootDir,

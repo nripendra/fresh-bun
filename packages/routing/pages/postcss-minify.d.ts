@@ -1,2 +1,2 @@
-declare module "postcss-minify"
-declare module "client-manifest"
+declare module "postcss-minify";
+declare module "client-manifest";

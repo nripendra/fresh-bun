@@ -1,10 +1,13 @@
 import type { MatchedRoute } from "bun";
 
-import * as Path from "node:path";
 import * as FileSystem from "node:fs";
+import * as Path from "node:path";
 
 import { Logger } from "@fresh-bun/lib/logging";
-import { defineMiddleware, MiddlewareContext } from "@fresh-bun/lib/middleware";
+import {
+  type MiddlewareContext,
+  defineMiddleware,
+} from "@fresh-bun/lib/middleware";
 import type { Router } from "@fresh-bun/lib/router";
 
 export class StaticRouter implements Router {
@@ -26,12 +29,12 @@ export class StaticRouter implements Router {
         searchPath = input;
         logger.debug("Pathname", searchPath);
       }
-      if (searchPath.startsWith("/")) searchPath = "." + searchPath;
-      if (searchPath == "./") searchPath = "./index.html";
+      if (searchPath.startsWith("/")) searchPath = `.${searchPath}`;
+      if (searchPath === "./") searchPath = "./index.html";
       logger.debug("SearchPath", searchPath);
       const filePath = Path.resolve(this.staticFolder, searchPath);
       logger.debug(`${searchPath} mapped to ${filePath}`);
-      let isFile;
+      let isFile: boolean;
       try {
         isFile = FileSystem.lstatSync(filePath).isFile();
       } catch {
@@ -64,7 +67,7 @@ export const serveStatic = (
   { cacheControl, pragma }: ServeStaticConfig = {
     cacheControl: "max-age=10000, public",
     pragma: "",
-  }
+  },
 ) => {
   const router = new StaticRouter(folder);
   return defineMiddleware(
@@ -93,6 +96,6 @@ export const serveStatic = (
       async onAppStart(ctx, _server) {
         ctx.staticFolders.push(folder);
       },
-    }
+    },
   );
 };

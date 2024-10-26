@@ -1,6 +1,6 @@
-import cookieHelper, { type SerializeOptions } from "cookie";
 import { Middleware } from "@fresh-bun/lib/middleware";
 import type { RequestContext } from "@fresh-bun/lib/request-context";
+import cookieHelper, { type SerializeOptions } from "cookie";
 
 export interface Cookie {
   name: string;
@@ -61,13 +61,13 @@ export class CookieJar {
   }
   setOutgoing(cookie: Cookie) {
     this.#outGoingCookies = this.#outGoingCookies.filter(
-      (it) => it.name !== cookie.name
+      (it) => it.name !== cookie.name,
     );
     this.appendOutgoing(cookie);
   }
   remove(name: string) {
     this.#outGoingCookies = this.#outGoingCookies.filter(
-      (it) => it.name !== name
+      (it) => it.name !== name,
     );
 
     this.#outGoingCookies.push({
@@ -81,7 +81,7 @@ export class CookieJar {
   }
   serialize() {
     const serializedCookies = this.#outGoingCookies.map((x) =>
-      cookieHelper.serialize(x.name, x.value, x.options)
+      cookieHelper.serialize(x.name, x.value, x.options),
     );
     return serializedCookies.join("; ");
   }
@@ -93,7 +93,7 @@ function getCookieJar(ctx: RequestContext) {
 
 function setCookieJar(
   ctx: RequestContext,
-  cookieJar: CookieJar | undefined | null
+  cookieJar: CookieJar | undefined | null,
 ) {
   ctx.properties.set("__cookie_jar", cookieJar);
 }
@@ -120,7 +120,7 @@ export function setCookie(
   ctx: RequestContext,
   name: string,
   value: string,
-  options?: SerializeOptions
+  options?: SerializeOptions,
 ) {
   let cookieJar = getCookieJar(ctx);
   if (!cookieJar) {
@@ -135,7 +135,7 @@ export function appendCookie(
   ctx: RequestContext,
   name: string,
   value: string,
-  options?: SerializeOptions
+  options?: SerializeOptions,
 ) {
   let cookieJar = getCookieJar(ctx);
   if (!cookieJar) {

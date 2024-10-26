@@ -1,9 +1,9 @@
-import { plugin, type BunPlugin } from "bun";
 import Path from "node:path";
-import postcss from "postcss";
-import tailwindcss from "tailwindcss";
 import autoprefixer from "autoprefixer";
+import type { BunPlugin } from "bun";
+import postcss from "postcss";
 import minify from "postcss-minify";
+import tailwindcss from "tailwindcss";
 
 type TailwindPluginConfig = {
   tailwindConfigPath: string;
@@ -26,21 +26,21 @@ export default function ({
         { filter: /\.css$/ },
         async ({ path, loader, namespace }) => {
           let file = await Bun.file(path).text();
-          const hash = Bun.hash(file)
+          const hash = Bun.hash(file);
 
-          const fileName = Path.basename(path).replace('.css', `-${hash}.css`);
-          if (await Bun.file(projectRoot + "/public/" + fileName).exists()) {
+          const fileName = Path.basename(path).replace(".css", `-${hash}.css`);
+          if (await Bun.file(`${projectRoot}/public/${fileName}`).exists()) {
             return {
               exports: {
                 default: await Bun.file(
-                  projectRoot + "/public/" + fileName
+                  `${projectRoot}/public/${fileName}`,
                 ).text(),
               },
               loader: "object",
             };
           }
           // read and compile it with the Svelte compiler
-          
+
           if (file.includes("@tailwind base;")) {
             const result = await postcss([
               tailwindcss({ ...tailwindConfigClone }),
@@ -50,8 +50,7 @@ export default function ({
             file = result.content;
           }
 
-
-          await Bun.write(projectRoot + "/public/" + fileName, file);
+          await Bun.write(`${projectRoot}/public/${fileName}`, file);
           // and return the compiled source code as "js"
           return {
             exports: {
@@ -59,7 +58,7 @@ export default function ({
             },
             loader: "object",
           };
-        }
+        },
       );
     },
   } satisfies BunPlugin;

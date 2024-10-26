@@ -1,3 +1,6 @@
+import { Database } from "bun:sqlite";
+import FileSystem from "node:fs";
+import Path from "node:path";
 import {
   CookieMiddlware,
   getIncommingCookie,
@@ -10,11 +13,8 @@ import {
   WellknownAuthType,
 } from "@fresh-bun/lib/authentication";
 import { Logger } from "@fresh-bun/lib/logging";
-import { defineMiddleware, Middleware } from "@fresh-bun/lib/middleware";
+import { Middleware, defineMiddleware } from "@fresh-bun/lib/middleware";
 import type { RequestContext } from "@fresh-bun/lib/request-context";
-import { Database } from "bun:sqlite";
-import FileSystem from "node:fs";
-import Path from "node:path";
 
 const UUID_REGEX =
   /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i;
@@ -53,7 +53,7 @@ export interface SessionMiddlewareConfig {
 
 export function sqliteSessionStore(db: Database) {
   const query = db.query(
-    `CREATE TABLE IF NOT EXISTS session(session_id varchar(50) NOT NULL PRIMARY KEY, session_data TEXT NULL);`
+    "CREATE TABLE IF NOT EXISTS session(session_id varchar(50) NOT NULL PRIMARY KEY, session_data TEXT NULL);",
   );
 
   query.run();
@@ -68,7 +68,7 @@ export function sqliteSessionStore(db: Database) {
         lastStoreDate: now,
       };
       const query = db.prepare(
-        `INSERT INTO session(session_id, session_data) VALUES ($session_id, $session_data)`
+        "INSERT INTO session(session_id, session_data) VALUES ($session_id, $session_data)",
       );
       query.run({
         session_id: sessionId,
@@ -79,7 +79,7 @@ export function sqliteSessionStore(db: Database) {
     },
     async findByOrCreate(sessionId: UUID): Promise<Session> {
       const query = db.prepare(
-        `SELECT session_data FROM session WHERE session_id = $session_id`
+        "SELECT session_data FROM session WHERE session_id = $session_id",
       );
       const sessionData: { session_data: string }[] = query.all({
         session_id: sessionId,
@@ -106,6 +106,7 @@ export function sqliteSessionStore(db: Database) {
 export class SessionMiddleware extends Middleware {}
 
 export function session(config?: SessionMiddlewareConfig) {
+  // biome-ignore lint: ensuring initialization
   config = config ?? {};
   const cookieConfig = config.cookieConfig;
   const maxAge = cookieConfig?.maxAge ?? 60 * 60;
@@ -128,34 +129,34 @@ export function session(config?: SessionMiddlewareConfig) {
           {
             strict: true,
             create: true,
-          }
+          },
         );
         defaultDb.exec("PRAGMA journal_mode = WAL;");
         return defaultDb;
-      })()
+      })(),
     );
   return new SessionMiddleware({
     handlerFn: async (ctx) => {
       return Logger.startSpan("SessionMiddleware").do(async (logger) => {
         logger.debug("Start - ", ctx.request.url);
         const CookieMiddlwareIndex = ctx.appContext.middlewares.findIndex(
-          (it) => it instanceof CookieMiddlware
+          (it) => it instanceof CookieMiddlware,
         );
-        if (CookieMiddlwareIndex == -1) {
+        if (CookieMiddlwareIndex === -1) {
           logger.debug("Incorrect setup. No cookie middleware found");
           throw new Error(
-            "Session middleware cannot be used without using cookie middleware first."
+            "Session middleware cannot be used without using cookie middleware first.",
           );
         }
         const SelfIndex = ctx.appContext.middlewares.findIndex(
-          (it) => it instanceof SessionMiddleware
+          (it) => it instanceof SessionMiddleware,
         );
         if (SelfIndex <= CookieMiddlwareIndex) {
           logger.debug(
-            "Incorrect setup. Cookie middleware is confiured after SessionMiddleware"
+            "Incorrect setup. Cookie middleware is confiured after SessionMiddleware",
           );
           throw new Error(
-            "Cookie middleware needs to be setup before the session middleware."
+            "Cookie middleware needs to be setup before the session middleware.",
           );
         }
 
@@ -165,7 +166,7 @@ export function session(config?: SessionMiddlewareConfig) {
         const now = new Date().getTime();
         let session: Session;
         const sessionId = getIncommingCookie(ctx.parent, cookieName);
-        if (ctx.request.url == "http://localhost:3000/api/data") {
+        if (ctx.request.url === "http://localhost:3000/api/data") {
           console.table(sessionId);
           console.table(ctx.request.headers);
         }
@@ -180,7 +181,7 @@ export function session(config?: SessionMiddlewareConfig) {
           const newSessionId = crypto.randomUUID();
           logger.debug("Creating new sessionId =", newSessionId);
           session = await store.createSession(newSessionId);
-          session["created_by_url"] = ctx.request.url;
+          session.created_by_url = ctx.request.url;
           ctx.parent.setForwardRequestCookie(cookieName, newSessionId);
         }
         ctx.properties.set(SESSION_KEY, session);
@@ -192,7 +193,7 @@ export function session(config?: SessionMiddlewareConfig) {
             logger.debug("session.sessionId === sessionId?.value");
             const diffMs = now - session.lastStoreDate;
             const diffMins = Math.round(
-              ((diffMs % 86400000) % 3600000) / 60000
+              ((diffMs % 86400000) % 3600000) / 60000,
             );
             const maxAgeMins = Math.round(maxAge / 60);
 
@@ -252,13 +253,13 @@ export async function refreshSessionData(ctx: RequestContext) {
   const session = ctx.properties.get(SESSION_KEY) as Session;
   ctx.properties.set(
     SESSION_KEY,
-    await store.findByOrCreate(session.sessionId)
+    await store.findByOrCreate(session.sessionId),
   );
 }
 
 export function getSessionData<T>(
   ctx: RequestContext,
-  key: string
+  key: string,
 ): T | undefined {
   const session = ctx.properties.get(SESSION_KEY) as Session;
   return session[key] as T;
@@ -290,42 +291,42 @@ export function sessionAuthentication() {
   return defineMiddleware(
     async (ctx) => {
       const SessionMiddlewareIndex = ctx.appContext.middlewares.findIndex(
-        (it) => it instanceof SessionMiddleware
+        (it) => it instanceof SessionMiddleware,
       );
-      if (SessionMiddlewareIndex == -1) {
+      if (SessionMiddlewareIndex === -1) {
         throw new Error(
-          "Authentication middleware cannot be used without using session middleware first."
+          "Authentication middleware cannot be used without using session middleware first.",
         );
       }
 
       const AUTHENTICATION = "__authentication";
       const principalData = getSessionData<Principal>(
         ctx.parent,
-        AUTHENTICATION
+        AUTHENTICATION,
       );
       if (principalData) {
         const principal: Principal = new Principal(
           principalData.id,
-          principalData.claims
+          principalData.claims,
         );
         ctx.authentication.restore(
-          new Authentication(WellknownAuthType.SESSION, principal)
+          new Authentication(WellknownAuthType.SESSION, principal),
         );
       }
       ctx.parent.addEventListener("forwardedRequestCompleted", async () => {
         await refreshSessionData(ctx.parent);
         const principalData = getSessionData<Principal>(
           ctx.parent,
-          AUTHENTICATION
+          AUTHENTICATION,
         );
 
         if (principalData) {
           const principal: Principal = new Principal(
             principalData.id,
-            principalData.claims
+            principalData.claims,
           );
           ctx.authentication.restore(
-            new Authentication(WellknownAuthType.SESSION, principal)
+            new Authentication(WellknownAuthType.SESSION, principal),
           );
         }
       });
@@ -335,7 +336,7 @@ export function sessionAuthentication() {
           setSessionData(
             ctx.parent,
             AUTHENTICATION,
-            ctx.authentication.principal
+            ctx.authentication.principal,
           );
         } else {
           removeSessionData(ctx.parent, AUTHENTICATION);
@@ -343,7 +344,7 @@ export function sessionAuthentication() {
       }
       return response;
     },
-    { name: "session-authentication-middleware" }
+    { name: "session-authentication-middleware" },
   );
 }
 

@@ -33,14 +33,15 @@ function LoginOrLogout({ isLoggedIn }: NavbarProps) {
   if (isLoggedIn) {
     return (
       <form method={"POST"} action={"/api/logout"} className={"p-0 ml-3"}>
-        <button className={"btn btn-sm"}>Logout</button>
+        <button type="submit" className={"btn btn-sm"}>
+          Logout
+        </button>
       </form>
     );
-  } else {
-    return (
-      <a href={"/login"} className={"link"} hx-boost="true" hx-target="#main">
-        Login
-      </a>
-    );
   }
+  return (
+    <a href={"/login"} className={"link"} hx-boost="true" hx-target="#main">
+      Login
+    </a>
+  );
 }

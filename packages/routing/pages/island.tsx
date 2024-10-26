@@ -1,13 +1,16 @@
 import Path from "node:path";
-import { type ComponentProps, type ComponentType } from "preact";
-import { lazy, Suspense } from "preact/compat";
 import manifest from "client-manifest";
+import type { ComponentChildren, ComponentProps, ComponentType } from "preact";
+import { Suspense, lazy } from "preact/compat";
 
 declare module "preact" {
   namespace JSX {
     interface IntrinsicElements {
+      // biome-ignore lint: no-check
       "island-marker": any;
+      // biome-ignore lint: no-check
       "island-marker-slot": any;
+      // biome-ignore lint: no-check
       "island-holder": any;
     }
   }
@@ -18,11 +21,13 @@ function extractModulePath(importStr: string): string {
   return match ? match[1] : "";
 }
 
-export function island<T extends ComponentType<any>>(
-  importFn: () => Promise<{ default: T }>
-): T {
+export function island<
+  T extends ComponentType<{ children: ComponentChildren }>,
+>(importFn: () => Promise<{ default: T }>): T {
   const modulePath = Path.join("/", extractModulePath(importFn.toString()));
-  const ActualComponent = lazy(importFn) as any;
+  const ActualComponent = lazy(importFn) as ComponentType<{
+    children: ComponentChildren;
+  }>;
 
   return ((props: ComponentProps<T>) => {
     const id = crypto.randomUUID();
@@ -32,7 +37,7 @@ export function island<T extends ComponentType<any>>(
         <island-holder>
           <island-marker
             data-island={id}
-            data-module={manifest[modulePath]}
+            data-module={manifest[`public://${modulePath}`]}
             data-props={JSON.stringify({ ...rest })}
           >
             <ActualComponent {...rest}>

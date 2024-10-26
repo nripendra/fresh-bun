@@ -1,8 +1,8 @@
-import { type PageProps, definePage } from "@fresh-bun/routing/pages";
-import LayoutProvider from "@fresh-bun/routing/pages/layout-provider";
-import { island } from "@fresh-bun/routing/pages/island";
 import { defineHandler } from "@fresh-bun/routing/core";
-import { getFlash, type FlashData } from "@fresh-bun/session";
+import { definePage } from "@fresh-bun/routing/pages";
+import { island } from "@fresh-bun/routing/pages/island";
+import LayoutProvider from "@fresh-bun/routing/pages/layout-provider";
+import { type FlashData, getFlash } from "@fresh-bun/session";
 
 const Counter = island(() => import("../client/islands/counter"));
 const Flash = island(() => import("../client/islands/Flash"));
@@ -34,6 +34,7 @@ export default definePage<IndexPageData>(({ ctx, data }) => {
                 fill="none"
                 viewBox="0 0 24 24"
               >
+                <title>Success</title>
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -48,55 +49,55 @@ export default definePage<IndexPageData>(({ ctx, data }) => {
         <div class={"pb-10"}>
           <h1>HELLO</h1>
           <Counter>
-            <div></div>
+            <div />
           </Counter>
         </div>
         <div class={"pb-10"}>
           <h1>HELLO</h1>
           <Counter>
-            <div></div>
+            <div />
           </Counter>
         </div>
         <div class={"pb-10"}>
           <h1>HELLO</h1>
           <Counter>
-            <div></div>
+            <div />
           </Counter>
         </div>
         <div class={"pb-10"}>
           <h1>HELLO</h1>
           <Counter>
-            <div></div>
+            <div />
           </Counter>
         </div>
         <div class={"pb-10"}>
           <h1>HELLO</h1>
           <Counter>
-            <div></div>
+            <div />
           </Counter>
         </div>
         <div class={"pb-10"}>
           <h1>HELLO</h1>
           <Counter>
-            <div></div>
+            <div />
           </Counter>
         </div>
         <div class={"pb-10"}>
           <h1>HELLO</h1>
           <Counter>
-            <div></div>
+            <div />
           </Counter>
         </div>
         <div class={"pb-10"}>
           <h1>HELLO</h1>
           <Counter>
-            <div></div>
+            <div />
           </Counter>
         </div>
         <div class={"pb-10"}>
           <h1>HELLO</h1>
           <Counter>
-            <div></div>
+            <div />
           </Counter>
         </div>
       </div>

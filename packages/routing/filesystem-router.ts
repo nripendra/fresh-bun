@@ -1,6 +1,6 @@
 import { Convention } from "@fresh-bun/lib/convention";
 import { Logger } from "@fresh-bun/lib/logging";
-import { defineMiddleware, type Middleware } from "@fresh-bun/lib/middleware";
+import { type Middleware, defineMiddleware } from "@fresh-bun/lib/middleware";
 
 export const fileSystemRouter = (basePath: string, middleware: Middleware) => {
   const router = new Bun.FileSystemRouter({
@@ -29,6 +29,6 @@ export const fileSystemRouter = (basePath: string, middleware: Middleware) => {
         ctx.conventions.push(new Convention("routesBasePath", basePath));
         middleware.config.onAppStart?.(ctx, server);
       },
-    }
+    },
   );
 };
