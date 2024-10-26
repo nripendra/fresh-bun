@@ -9,10 +9,7 @@ import {
 } from "@fresh-bun/lib/validation";
 import { defineHandler } from "@fresh-bun/routing/core";
 import { type } from "arktype";
-import {
-  loginType,
-  loginValidations,
-} from "../../validations/login-validations";
+import { loginType } from "../../validations/login-validations";
 
 export const POST = defineHandler(async (ctx) => {
   const input = await ctx.request.clone().json();
