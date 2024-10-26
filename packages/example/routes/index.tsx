@@ -1,5 +1,5 @@
 import { defineHandler } from "@fresh-bun/routing/core";
-import { type PageProps, definePage } from "@fresh-bun/routing/pages";
+import { definePage } from "@fresh-bun/routing/pages";
 import { island } from "@fresh-bun/routing/pages/island";
 import LayoutProvider from "@fresh-bun/routing/pages/layout-provider";
 import { type FlashData, getFlash } from "@fresh-bun/session";

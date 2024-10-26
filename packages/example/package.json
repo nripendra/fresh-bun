@@ -4,7 +4,9 @@
   "type": "module",
   "scripts": {
     "dev": "fresh-bun dev .",
-    "build": "NODE_ENV=production fresh-bun build ."
+    "build": "NODE_ENV=production fresh-bun build .",
+    "lint": "bunx @biomejs/biome check --write .",
+    "format": "bunx @biomejs/biome format --write ."
   },
   "devDependencies": {
     "@types/bun": "latest",
@@ -12,7 +14,8 @@
     "tailwind": "^4.0.0"
   },
   "peerDependencies": {
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "@biomejs/biome": "1.9.4"
   },
   "dependencies": {
     "arktype": "^2.0.0-rc.17",

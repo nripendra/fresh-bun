@@ -1,7 +1,7 @@
 import Fs, { type WatchListener } from "node:fs";
 import Path from "node:path";
 import { parseArgs } from "node:util";
-import type { FreshBunBuildConfig } from "../build-config";
+import type { FreshBunBuildConfig } from "@fresh-bun/cli/build-config";
 import { getWs } from "./app-plugin";
 
 Bun.plugin({

@@ -1,7 +1,7 @@
 import * as Path from "node:path";
 // import * as FileSystem from "node:fs";
 
-import type { Server, ServerWebSocket, WebSocketHandler } from "bun";
+import type { WebSocketHandler } from "bun";
 // import { RouterPipeline, StaticRouter } from "./router";
 import { AppContext } from "./app-context";
 // import { Conventions } from "./conventions";

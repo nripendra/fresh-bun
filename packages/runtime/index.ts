@@ -1,14 +1,8 @@
-import Path from "node:path";
 import { parseArgs } from "node:util";
-import {
-  type Middleware,
-  type MiddlewareFunction,
-  defineMiddleware,
-} from "@fresh-bun/lib/middleware";
+import type { Middleware, MiddlewareFunction } from "@fresh-bun/lib/middleware";
 import { fileSystemRouter } from "@fresh-bun/routing/filesystem-router";
 import { pageHandler } from "@fresh-bun/routing/pages";
 import { serveStatic } from "@fresh-bun/routing/serve-static";
-// import { buildClientAssets, watchClientAssets } from "./fresh-bun-build";
 import { AppServer } from "../lib/app-server";
 
 export type FreshBunRuntimeConfig = {

@@ -1,6 +1,6 @@
 import Path from "node:path";
 import autoprefixer from "autoprefixer";
-import { type BunPlugin, plugin } from "bun";
+import type { BunPlugin } from "bun";
 import postcss from "postcss";
 import minify from "postcss-minify";
 import tailwindcss from "tailwindcss";

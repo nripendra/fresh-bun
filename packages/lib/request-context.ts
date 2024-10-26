@@ -1,4 +1,4 @@
-import type { MatchedRoute, Server } from "bun";
+import type { Server } from "bun";
 import type { AppContext } from "./app-context";
 // import type { Router } from "./router";
 import type { Authentication } from "./authentication";

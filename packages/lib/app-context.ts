@@ -1,6 +1,6 @@
 // import type { Conventions } from "./conventions";
 import type { Convention } from "./convention";
-import type { Middleware, MiddlewareFunction } from "./middleware";
+import type { Middleware } from "./middleware";
 
 export class AppContext {
   constructor(

@@ -1,12 +1,6 @@
 import Path from "node:path";
 import manifest from "client-manifest";
-import type {
-  Component,
-  ComponentChild,
-  ComponentChildren,
-  ComponentProps,
-  ComponentType,
-} from "preact";
+import type { ComponentChildren, ComponentProps, ComponentType } from "preact";
 import { Suspense, lazy } from "preact/compat";
 
 declare module "preact" {
