@@ -6,7 +6,7 @@ export abstract class SafeHttpError extends Error {
   constructor(
     public readonly status: number,
     public readonly message: string,
-    public readonly data?: any
+    public readonly data?: unknown,
   ) {
     super();
   }
@@ -15,24 +15,33 @@ export abstract class SafeHttpError extends Error {
 export class SafeHttpInternalServerError extends SafeHttpError {
   constructor(
     readonly message: string,
-    readonly data?: any,
-    public readonly cause?: unknown
+    readonly data?: unknown,
+    public readonly cause?: unknown,
   ) {
     super(500, message, data);
   }
 }
 export class SafeHttpNotFoundError extends SafeHttpError {
-  constructor(readonly message: string, readonly data?: any) {
+  constructor(
+    readonly message: string,
+    readonly data?: unknown,
+  ) {
     super(404, message, data);
   }
 }
 export class SafeHttpMethodNotAllowedError extends SafeHttpError {
-  constructor(readonly message: string, readonly data?: any) {
+  constructor(
+    readonly message: string,
+    readonly data?: unknown,
+  ) {
     super(405, message, data);
   }
 }
 export class SafeHttpUnSupportedMediaTypeError extends SafeHttpError {
-  constructor(readonly message: string, readonly data?: any) {
+  constructor(
+    readonly message: string,
+    readonly data?: unknown,
+  ) {
     super(415, message, data);
   }
 }

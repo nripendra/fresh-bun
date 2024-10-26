@@ -1,4 +1,4 @@
-import type { MatchedRoute, Server } from "bun";
+import type { Server } from "bun";
 import type { AppContext } from "./app-context";
 // import type { Router } from "./router";
 import type { Authentication } from "./authentication";
@@ -36,7 +36,7 @@ export class RequestContext {
     // public router: Router,
     // public route: MatchedRoute | null,
     private readonly _server: Server,
-    private readonly _authentication: Authentication
+    private readonly _authentication: Authentication,
   ) {}
 
   /**
@@ -74,8 +74,8 @@ export class RequestContext {
   // setRestoreAuthentication(value: boolean) {
   //   this.#restoreAuthentication = value;
   // }
-  #eventHandlers: Map<"forwardedRequestCompleted", Function[]> = new Map();
-  addEventListener(event: "forwardedRequestCompleted", handler: Function) {
+  #eventHandlers: Map<"forwardedRequestCompleted", (() => void)[]> = new Map();
+  addEventListener(event: "forwardedRequestCompleted", handler: () => void) {
     if (!this.#eventHandlers.has(event)) {
       this.#eventHandlers.set(event, []);
     }
@@ -86,7 +86,8 @@ export class RequestContext {
     const request = this.request.clone();
     const requestUrl = new URL(request.url);
     requestUrl.pathname = input;
-    init = init || {};
+    // biome-ignore lint: initializing if undefined
+    init = init ?? {};
     const headers = new Headers(init.headers);
     const map = this.getForwardRequestCookie();
     const forwardedCookies = [];
@@ -120,7 +121,7 @@ export class RequestContext {
 
   async fetchJson<T extends unknown | ValidationResult>(
     input: string,
-    init?: RequestInit
+    init?: RequestInit,
   ): Promise<Response & { data: T }> {
     const response = (await this.fetch(input, init)) as Response & { data: T };
     response.data = await response.clone().json();

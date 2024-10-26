@@ -3,7 +3,10 @@
   "module": "index.ts",
   "type": "module",
   "scripts": {
-    "dev": "NODE_ENV=development bun --watch index.ts"
+    "dev": "fresh-bun dev .",
+    "build": "NODE_ENV=production fresh-bun build .",
+    "lint": "bunx @biomejs/biome check --write .",
+    "format": "bunx @biomejs/biome format --write ."
   },
   "devDependencies": {
     "@types/bun": "latest",
@@ -11,7 +14,8 @@
     "tailwind": "^4.0.0"
   },
   "peerDependencies": {
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "@biomejs/biome": "1.9.4"
   },
   "dependencies": {
     "arktype": "^2.0.0-rc.17",
@@ -19,6 +23,7 @@
     "@fresh-bun/cookies": "workspace:*",
     "@fresh-bun/routing": "workspace:*",
     "@fresh-bun/runtime": "workspace:*",
-    "@fresh-bun/session": "workspace:*"
+    "@fresh-bun/session": "workspace:*",
+    "@fresh-bun/cli": "link:@fresh-bun/cli"
   }
 }

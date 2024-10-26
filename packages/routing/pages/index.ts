@@ -1,26 +1,26 @@
+import { Convention } from "@fresh-bun/lib/convention";
+import { Logger } from "@fresh-bun/lib/logging";
 import {
-  defineMiddleware,
   type MiddlewareContext,
+  defineMiddleware,
 } from "@fresh-bun/lib/middleware";
 import type { RequestContext } from "@fresh-bun/lib/request-context";
+import { SafeHttpError } from "@fresh-bun/lib/safe-http-errors";
+import { type JSX, isValidElement } from "preact";
+import { renderToStringAsync } from "preact-render-to-string";
 import {
+  type Guard,
+  RequestHandlerProcessorPipeline,
+  type RouteHandler,
+  RouteHandlerStep,
+  type RouteModule,
+  RouteStepRequestContext,
+  type StepResponse,
   findFolderGuards,
   loadModule,
-  RequestHandlerProcessorPipeline,
-  RouteHandlerStep,
   routeStepFactory,
-  RouteStepRequestContext,
-  type Guard,
-  type RouteHandler,
-  type RouteModule,
-  type StepResponse,
 } from "../core";
-import { isValidElement, type JSX } from "preact";
-import { Convention } from "@fresh-bun/lib/convention";
-import { renderToStringAsync } from "preact-render-to-string";
 import { useRoute } from "../use-route";
-import { Logger } from "@fresh-bun/lib/logging";
-import { SafeHttpError } from "@fresh-bun/lib/safe-http-errors";
 
 export type PageProps<T> = JSX.IntrinsicAttributes & {
   ctx: RequestContext;
@@ -29,14 +29,17 @@ export type PageProps<T> = JSX.IntrinsicAttributes & {
 };
 
 export class DefinedHandler<T> {
-  constructor(public handlerFn: RouteHandler<T>, public guard?: Guard<T>) {}
+  constructor(
+    public handlerFn: RouteHandler<T>,
+    public guard?: Guard<T>,
+  ) {}
 }
 export type PageFactory<T> = (props: T) => JSX.Element | Promise<JSX.Element>;
 
 class DefinedPages<T> {
   constructor(
     public pageFactory: PageFactory<PageProps<T>>,
-    public guard?: Guard<T>
+    public guard?: Guard<T>,
   ) {}
 }
 
@@ -56,14 +59,14 @@ export type PagesConfig = {
  */
 export async function renderJsx(
   object: StepResponse | JSX.Element | Promise<JSX.Element>,
-  status = 200
+  status = 200,
 ) {
   const response = await Promise.resolve(object);
   if (response instanceof Response) {
     return response;
   }
   let output = await renderToStringAsync(response);
-  if (output.startsWith("<html")) output = "<!DOCTYPE html>" + output;
+  if (output.startsWith("<html")) output = `<!DOCTYPE html>${output}`;
   return new Response(output, {
     status,
     headers: { "Content-Type": "text/html" },
@@ -73,9 +76,11 @@ export async function renderJsx(
 function getPageFn<T>(module: PagesModule<T>) {
   const page = module.default;
   let pageFn: PageFactory<PageProps<T>> | undefined = undefined;
-  if (page instanceof DefinedPages) {
-    pageFn = page.pageFactory;
-  } else if (page instanceof Function) {
+
+  if (page?.constructor?.name === "DefinedPages") {
+    const pg = page as DefinedPages<T>;
+    pageFn = pg.pageFactory;
+  } else if (typeof page === "function") {
     pageFn = page as PageFactory<PageProps<T>>;
   }
 
@@ -87,10 +92,11 @@ const pageStepFactory = {
   pageGuard<T>(module: PagesModule<T>) {
     return new RouteHandlerStep<T>((ctx) => {
       const page = module.default;
-      if (page instanceof DefinedPages) {
-        if (page.guard) {
-          page.guard(ctx);
-          return page.guard(ctx);
+      if (page?.constructor?.name === "DefinedPages") {
+        const pg = page as DefinedPages<T>;
+        if (pg.guard) {
+          pg.guard(ctx);
+          return pg.guard(ctx);
         }
       }
       return ctx.next();
@@ -115,7 +121,7 @@ const pageStepFactory = {
             ctx: ctx.parent,
             data,
             // validationResult,
-          })
+          }),
         );
       }
       return ctx.next();
@@ -137,7 +143,7 @@ export const pageHandler = ({
         (x) =>
           new RouteHandlerStep<{ data: unknown }>((ctx) => {
             return x(ctx);
-          }, "folderGuard")
+          }, "folderGuard"),
       );
       const steps: RouteHandlerStep<{ data: unknown }>[] = [
         ...guardSteps,
@@ -159,12 +165,12 @@ export const pageHandler = ({
         ctx.conventions.push(new Convention("errorPage", errorPageFile));
         ctx.errorHandler = errorPage();
       },
-    }
+    },
   );
 
 export function definePage<T>(
   pageFactory: PageFactory<PageProps<T>>,
-  config?: { _guard?: Guard<T> }
+  config?: { _guard?: Guard<T> },
 ) {
   return new DefinedPages<T>(pageFactory, config?._guard);
 }
@@ -180,11 +186,11 @@ export const errorPage = () =>
           console.error(e, { errorId, ctx });
 
           const conventions = ctx.appContext.conventions.find(
-            (x) => x.name === "errorPage"
+            (x) => x.name === "errorPage",
           );
           if (!conventions) {
             throw new Error(
-              "Incorrect convention setup: Could not find convention"
+              "Incorrect convention setup: Could not find convention",
             );
           }
           let errorPageModule: PagesModule<{ error: unknown; errorId: string }>;
@@ -194,10 +200,10 @@ export const errorPage = () =>
             );
           } catch (e) {
             throw new Error(
-              "Incorrect convention setup: Could not find error page module"
+              "Incorrect convention setup: Could not find error page module",
             );
           }
-          
+
           const pageFn = getPageFn(errorPageModule);
           if (pageFn) {
             let status = 200;
@@ -210,15 +216,14 @@ export const errorPage = () =>
                 data: { errorId, error: e },
                 // validationResult: new ValidationResult(),
               }),
-              status
-            );
-          } else {
-            throw new Error(
-              "Incorrect convention setup: error page module should have a valid default export"
+              status,
             );
           }
+          throw new Error(
+            "Incorrect convention setup: error page module should have a valid default export",
+          );
         }
       });
     },
-    { name: "error-handler" }
+    { name: "error-handler" },
   );

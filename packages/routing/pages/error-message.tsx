@@ -9,7 +9,6 @@ export const ErrorMessages = ({
   field: string;
   className?: string;
 }) => {
-
   if (!validationResult) {
     return null;
   }
@@ -19,8 +18,10 @@ export const ErrorMessages = ({
   }
   return (
     <ul>
-      {errors.map((error) => (
-        <li className={className}>{error}</li>
+      {errors.map((error, i) => (
+        <li key={new Date().getDate()} className={className}>
+          {error}
+        </li>
       ))}
     </ul>
   );

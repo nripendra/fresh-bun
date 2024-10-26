@@ -17,7 +17,7 @@ type ValidationRuleChecker<T> = {
 export class ValidationRules {
   constructor(private rules: ValidationRuleChecker<unknown>[]) {}
   async check(
-    obj: FormData | Record<string, unknown>
+    obj: FormData | Record<string, unknown>,
   ): Promise<ValidationResult> {
     const result = new ValidationResult();
     for (const rule of this.rules) {
@@ -80,7 +80,7 @@ export const WellknownRules = {
   minLength(
     field: string,
     minLength: number,
-    message = `${field} must be at least length ${minLength}`
+    message = `${field} must be at least length ${minLength}`,
   ) {
     return {
       field,
@@ -104,7 +104,7 @@ export const WellknownRules = {
   match(
     field: string,
     targetField: string,
-    message = `${field} and ${targetField} should match`
+    message = `${field} and ${targetField} should match`,
   ) {
     return {
       field,
@@ -126,7 +126,7 @@ export class ValidationResult {
   getValue<T>(field: string): T | undefined {
     return this.validations.find((x) => x.field === field)?.value as T;
   }
-  __type: "ValidationResult" = "ValidationResult";
+  __type = "ValidationResult" as const;
   readonly validations = [] as ValidationResultItem<unknown>[];
   constructor(validations: ValidationResultItem<unknown>[] = []) {
     this.validations = validations;
@@ -152,7 +152,7 @@ export class ValidationResult {
 
   errorsFor(field: string) {
     return this.validations
-      .filter((rule) => rule.field === field && rule.error != "SUCCESS")
+      .filter((rule) => rule.field === field && rule.error !== "SUCCESS")
       .map((rule) => (rule.error as Error).message);
   }
 

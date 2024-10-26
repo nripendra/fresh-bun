@@ -1,6 +1,6 @@
 // import type { Conventions } from "./conventions";
 import type { Convention } from "./convention";
-import type { Middleware, MiddlewareFunction } from "./middleware";
+import type { Middleware } from "./middleware";
 
 export class AppContext {
   constructor(
@@ -9,6 +9,6 @@ export class AppContext {
     public readonly middlewares: Middleware[],
     public readonly conventions: Convention[],
     public errorHandler?: Middleware,
-    public readonly port: number = 3000
+    public readonly port: number = 3000,
   ) {}
 }

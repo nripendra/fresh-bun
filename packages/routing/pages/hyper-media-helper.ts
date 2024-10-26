@@ -6,7 +6,7 @@ export interface HyperMediaAjaxHelper {
 
 let hyperMediaHelper: HyperMediaAjaxHelper | undefined = undefined;
 
-export const registerHyperAwareness = (helper: HyperMediaAjaxHelper) => {
+export const registerHyperMediaAwareness = (helper: HyperMediaAjaxHelper) => {
   hyperMediaHelper = helper;
 };
 

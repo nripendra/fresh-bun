@@ -1,7 +1,7 @@
 export class Principal {
   constructor(
     public readonly id: string,
-    public readonly claims: Record<string, unknown> = {}
+    public readonly claims: Record<string, unknown> = {},
   ) {}
 
   hasClaim(claimName: string) {
@@ -10,7 +10,7 @@ export class Principal {
   }
   getClaim<ClaimType>(
     claimName: string,
-    defaultValue?: ClaimType
+    defaultValue?: ClaimType,
   ): ClaimType | null {
     const claim = this.claims[claimName];
     if (claim) {
@@ -51,7 +51,7 @@ export class Authentication {
   #authenticationType: WellknownAuthType | string;
   constructor(
     authenticationType: WellknownAuthType | string,
-    public principal: Principal
+    public principal: Principal,
   ) {
     this.#authenticationType = authenticationType;
   }

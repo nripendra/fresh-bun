@@ -1,6 +1,6 @@
-import { lazy } from "preact/compat";
-import type { JSX } from "preact/jsx-runtime";
 import type { RequestContext } from "@fresh-bun/lib/request-context";
+import { type ComponentType, lazy } from "preact/compat";
+import type { JSX } from "preact/jsx-runtime";
 import { isHyperMediaAjaxRequest } from "./hyper-media-helper";
 
 export const Config = {
@@ -34,15 +34,15 @@ export default function LayoutProvider<T>(props: LayoutProps<T>) {
     }
     if (props.layout === undefined || props.layout === "default") {
       const convention = props.ctx.appContext.conventions.find(
-        (x) => x.name === "layoutFile"
+        (x) => x.name === "layoutFile",
       );
 
       const defaultLayoutPath = convention?.resolve(
-        props.ctx.appContext.rootDir
+        props.ctx.appContext.rootDir,
       );
       if (!defaultLayoutPath) {
         throw new Error(
-          "Incomplete Setup, defaultLayoutFile for pages handler"
+          "Incomplete Setup, defaultLayoutFile for pages handler",
         );
       }
       const Page = lazy(async () => {
@@ -66,7 +66,7 @@ export default function LayoutProvider<T>(props: LayoutProps<T>) {
       });
       return <Page />;
     }
-    const LayoutNode = (props as any).layout;
+    const LayoutNode = (props as { layout: ComponentType }).layout;
     if (LayoutNode == null) {
       return <>{props.children}</>;
     }
@@ -76,7 +76,7 @@ export default function LayoutProvider<T>(props: LayoutProps<T>) {
 }
 
 export function defineLayout<T extends LayoutProps>(
-  factory: (props: T) => JSX.Element
+  factory: (props: T) => JSX.Element,
 ) {
   return factory;
 }

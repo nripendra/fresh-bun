@@ -1,7 +1,7 @@
-import type { RequestContext } from "@fresh-bun/lib/request-context";
-import { CookieJar } from "./cookie-jar";
-import type { SerializeOptions } from "cookie";
 import { Middleware } from "@fresh-bun/lib/middleware";
+import type { RequestContext } from "@fresh-bun/lib/request-context";
+import type { SerializeOptions } from "cookie";
+import { CookieJar } from "./cookie-jar";
 
 function getCookieJar(ctx: RequestContext) {
   return ctx.properties.get("__cookie_jar") as CookieJar | undefined | null;
@@ -9,7 +9,7 @@ function getCookieJar(ctx: RequestContext) {
 
 function setCookieJar(
   ctx: RequestContext,
-  cookieJar: CookieJar | undefined | null
+  cookieJar: CookieJar | undefined | null,
 ) {
   ctx.properties.set("__cookie_jar", cookieJar);
 }
@@ -36,7 +36,7 @@ export function setCookie(
   ctx: RequestContext,
   name: string,
   value: string,
-  options?: SerializeOptions
+  options?: SerializeOptions,
 ) {
   let cookieJar = getCookieJar(ctx);
   if (!cookieJar) {
@@ -51,7 +51,7 @@ export function appendCookie(
   ctx: RequestContext,
   name: string,
   value: string,
-  options?: SerializeOptions
+  options?: SerializeOptions,
 ) {
   let cookieJar = getCookieJar(ctx);
   if (!cookieJar) {

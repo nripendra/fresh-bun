@@ -1,6 +1,6 @@
 import type { ComponentChildren } from "preact";
-import React from "preact/compat";
-import { useState, useRef, useEffect } from "preact/compat";
+import type React from "preact/compat";
+import { useEffect, useRef, useState } from "preact/compat";
 
 interface FlashNotificationProps {
   children: ComponentChildren;
@@ -93,27 +93,32 @@ export const Flash: React.FC<FlashNotificationProps> = ({
           notification.style.left = `${targetRect.right + 8 + offsetX}px`;
           break;
       }
-      notificationRef.current!.classList.remove("invisible");
+      if (notificationRef.current)
+        notificationRef.current.classList.remove("invisible");
     };
 
     updatePosition();
     window.addEventListener("resize", updatePosition);
     window.addEventListener("scroll", updatePosition);
 
-    let timer = setTimeout(handleClose, timeout);
+    const timer = setTimeout(handleClose, timeout);
     return () => {
       clearTimeout(timer);
       window.removeEventListener("resize", updatePosition);
       window.removeEventListener("scroll", updatePosition);
     };
-  }, [targetSelector, position]);
+  }, [targetSelector, position, offsetX, offsetY, timeout]);
 
   const handleClose = () => {
-    notificationRef.current!.addEventListener("transitionend", () => {
-      setIsVisible(false);
-      onClose?.();
-    });
-    notificationRef.current!.style.opacity = "0";
+    if (notificationRef.current) {
+      if (notificationRef.current) {
+        notificationRef.current.addEventListener("transitionend", () => {
+          setIsVisible(false);
+          onClose?.();
+        });
+        notificationRef.current.style.opacity = "0";
+      }
+    }
   };
 
   if (!isVisible) return null;
@@ -132,13 +137,6 @@ export const Flash: React.FC<FlashNotificationProps> = ({
         <div className={`text-sm font-medium ${textColors[type]}`}>
           {children}
         </div>
-        <button
-          onClick={handleClose}
-          className={`${textColors[type]} hover:opacity-70 transition-opacity`}
-          aria-label="Close notification"
-        >
-          {/* <X className="w-5 h-5" /> */}
-        </button>
       </div>
     </div>
   );
