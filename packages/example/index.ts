@@ -1,10 +1,10 @@
 import { cookie } from "@fresh-bun/cookies/cookie-jar";
 import { Logger, LogLevel } from "@fresh-bun/lib/logging";
-import { registerHyperAwareness } from "@fresh-bun/routing/pages/hyper-media-helper";
+import { registerHyperMediaAwareness } from "@fresh-bun/routing/pages/hyper-media-helper";
 import { FreshBun } from "@fresh-bun/runtime";
 import { session, sessionAuthentication } from "@fresh-bun/session";
 
-registerHyperAwareness({
+registerHyperMediaAwareness({
   isHyperMediaAjaxRequest(ctx) {
     return (
       ctx.request.headers.has("HX-Boosted") ||
