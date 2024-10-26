@@ -4,7 +4,9 @@ import type { BunPlugin } from "bun";
 import Path from "node:path";
 import { parseArgs } from "util";
 import preloadCode from "./dev-preload" with { type: "text"}
+import appPlugin from "./app-plugin" with { type: "text"}
 import type { FreshBunBuildConfig } from "./build-config";
+import { devServer } from "./dev-server";
 
 // const freshBunConfig = {
 //   rootDir: import.meta.dir,
@@ -51,7 +53,6 @@ export async function build(config: FreshBunBuildConfig) {
     const postcss = (await import("postcss")).default;
     const tailwindcss = (await import("tailwindcss")).default;
     const autoprefixer = (await import("autoprefixer")).default;
-    // const minify = (await import("postcss-minify")).default;
     const cssnano = (await import("cssnano")).default;
 
     const plugins = [autoprefixer];
@@ -66,14 +67,9 @@ export async function build(config: FreshBunBuildConfig) {
       // @ts-ignore
       plugins.push(tailwindcss(tailwindConfigClone));
     }
-    if (
-      minify ||
-      Bun.env.NODE_ENV === "production" ||
-      Bun.env.NODE_ENV === undefined
-    ) {
+    if (minify) {
       // @ts-ignore
       plugins.push(cssnano);
-      // plugins.push(minify);
     }
     const result = await postcss(plugins).process(css, {
       from: args.path,
@@ -171,6 +167,7 @@ export async function build(config: FreshBunBuildConfig) {
     // additional config
     outdir: distFolder,
   });
+
 }
 
 export async function dev(config: FreshBunBuildConfig) {
@@ -184,9 +181,17 @@ export async function dev(config: FreshBunBuildConfig) {
     "dev-preload.ts"
   );
 
-  await Bun.write(preloadDestFilePath, preloadCode);
+  const pluginDestFilePath = Path.join(
+    rootDir,
+    ".fresh-bun",
+    "app-plugin.ts"
+  );
 
-  await Bun.$`NODE_ENV=development bun --preload ${preloadDestFilePath} --watch ${entryPoint} -- --plugin .fresh-bun/plugin.ts`;
+  await Bun.write(preloadDestFilePath, preloadCode);
+  await Bun.write(pluginDestFilePath, appPlugin as unknown as string);
+
+  await devServer(rootDir)
+  await Bun.$`NODE_ENV=development bun --preload ${preloadDestFilePath} --watch ${entryPoint} -- --plugin ${pluginDestFilePath}`;
 }
 
 const { positionals } = parseArgs({

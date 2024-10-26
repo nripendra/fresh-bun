@@ -1,15 +1,13 @@
 import Path from "node:path";
+import Fs, { type WatchListener } from "node:fs";
 import type { FreshBunBuildConfig } from "./build-config";
 import { parseArgs } from "util";
-import { plugin } from "bun";
+import { getWs } from "./app-plugin";
 
-console.log("........Preload......");
 Bun.plugin({
   name: "client-manifest",
   async setup(builder) {
-    console.log("........Setup......");
     builder.module("client-manifest", async () => {
-      console.log("Resolving");
       return {
         contents: await Bun.file(
           Path.resolve(".fresh-bun", "manifest.js")
@@ -82,21 +80,44 @@ export async function buildBrowserArtifactsAndManifest(
     return `${parsed.name}-${hash}${parsed.ext}`;
   }
 
+  let oldManifest = {} as any;
+  const manifestFile = Path.join(rootDir, ".fresh-bun", "/manifest.js");
+  if (await Bun.file(manifestFile).exists()) {
+    const existingManifestContent = await Bun.file(manifestFile).text();
+    oldManifest = JSON.parse(
+      existingManifestContent
+        .replace("const manifest = ", "")
+        .replace(";export default manifest;", "")
+    );
+  }
+
   const manifest = {} as any;
 
   for (const file of cssFiles) {
-    const css = await tailwindBuild({ path: file });
-    const hash = getHash(css, 8);
+    const hash = getHash(await Bun.file(file).text(), 8);
     const filePath = import.meta
       .resolve(file)
       .replace("file://", "")
       .replace(rootDir, "");
     const filename = hashedFilename(filePath, hash);
+
+    if (oldManifest[filePath]) {
+      if (oldManifest[filePath].includes(hash)) {
+        manifest[filePath] = oldManifest[filePath];
+        continue;
+      }
+    }
+
+    const css = await tailwindBuild({ path: file });
+
     const parsed = Path.parse(filePath);
     parsed.base = filename;
 
     await Bun.write(Path.join(distFolder, `${Path.format(parsed)}`), css);
     manifest[filePath] = Path.join(distFolder, `${Path.format(parsed)}`);
+    if (oldManifest[filePath]) {
+      Fs.unlinkSync(oldManifest[filePath]);
+    }
   }
 
   // build client files for browser
@@ -127,6 +148,9 @@ export async function buildBrowserArtifactsAndManifest(
     const parsed = Path.parse(filePath);
     parsed.base = parsed.name;
     manifest[filePath] = Path.join(distFolder, outputFiles[i]);
+    if (oldManifest[filePath] !== manifest[filePath]) {
+      Fs.unlinkSync(Path.join(rootDir, oldManifest[filePath]));
+    }
     manifest[Path.format(parsed)] = Path.join(distFolder, outputFiles[i]);
     manifest["public://" + Path.format(parsed)] = outputFiles[i];
     manifest["public://" + Path.format(parsed) + ".js"] = outputFiles[i];
@@ -158,23 +182,75 @@ const { positionals } = parseArgs({
 const args = positionals.slice(1);
 
 // assumit arg[0] will be entry point. Need to throughly test the assumption.
-const config = (
-  await import(
-    Path.join(Path.resolve(Path.dirname(args[0])), "build.config.ts")
-  )
-).default;
+const rootDir = Path.resolve(Path.dirname(args[0]));
+const config = (await import(Path.join(rootDir, "build.config.ts"))).default;
 
 await buildBrowserArtifactsAndManifest(config);
+
+const debounce = <T>(mainFunction: WatchListener<T>, delay: number) => {
+  // Declare a variable called 'timer' to store the timer ID
+  let timer: NodeJS.Timer;
+
+  // Return an anonymous function that takes in any number of arguments
+  return function (event: Fs.WatchEventType, filename: T | null) {
+    // Clear the previous timer to prevent the execution of 'mainFunction'
+    clearTimeout(timer);
+
+    // Set a new timer that will execute 'mainFunction' after the specified delay
+    timer = setTimeout(() => {
+      mainFunction(event, filename);
+    }, delay);
+  };
+};
+
+function clearManifestRegistry() {
+  Loader.registry
+    .keys()
+    .filter((it) => it.includes("_layout") || it.includes("client-manifest"))
+    .forEach((it) => {
+      Loader.registry.delete(it);
+    });
+}
+function clearJsRegistry() {
+  Loader.registry
+    .keys()
+    .filter((it) => it.includes("client-helper"))
+    .forEach((it) => {
+      Loader.registry.delete(it);
+    });
+}
+
+const watchDirs = [
+  Path.join(rootDir, "client"),
+  Path.join(rootDir, "client", "islands"),
+  Path.join(rootDir, "public"),
+  Path.join(rootDir, "styles"),
+];
+
+Fs.watch(
+  rootDir,
+  { recursive: true },
+  debounce(async (e, f) => {
+    if (f) {
+      if (watchDirs.includes(Path.join(rootDir, Path.dirname(f)))) {
+        await buildBrowserArtifactsAndManifest(config);
+        clearManifestRegistry();
+        if (Path.dirname(f) == "client") {
+          clearJsRegistry();
+        }
+        getWs()?.send("CHANGE: " + f);
+      }
+    }
+  }, 500)
+);
 
 // Probably issue with typescript, as it doesn't understand `with { type: "text"}`,
 // it expects a default export from this module.
 export default "";
 
-// ////
+////
 // async function devServer(rootDir: string) {
-//   if (
-//     await Bun.file(Path.join(rootDir, ".fresh-bun", ".devserver")).exists()
-//   ) {
+//   if (await Bun.file(Path.join(rootDir, ".fresh-bun", ".devserver")).exists()) {
 //     const devServerInfo = await Bun.file(
 //       Path.join(rootDir, ".fresh-bun", ".devserver")
 //     ).json();
@@ -197,9 +273,9 @@ export default "";
 //   });
 //   // await
 //   await new Promise((resolve) => {
-//     child.on("message", (e) => {
+//     child.on("message", () => {
 //       resolve({});
 //     });
 //   });
 // }
-////
+//
