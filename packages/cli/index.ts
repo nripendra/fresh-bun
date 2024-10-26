@@ -1,35 +1,24 @@
 #!/usr/bin/env bun
 
-import type { BunPlugin } from "bun";
 import Path from "node:path";
-import { parseArgs } from "util";
-import preloadCode from "./dev-preload" with { type: "text"}
-import appPlugin from "./app-plugin" with { type: "text"}
+import { parseArgs } from "node:util";
+import type { BunPlugin } from "bun";
 import type { FreshBunBuildConfig } from "./build-config";
+import appPlugin from "./copy/app-plugin" with { type: "text" };
+import preloadCode from "./copy/dev-preload" with { type: "text" };
 import { devServer } from "./dev-server";
-
-// const freshBunConfig = {
-//   rootDir: import.meta.dir,
-//   serverEntryPoint: "index.ts",
-//   build: {
-//     distFolder: "./dist",
-//     minify: false,
-//     tailwindConfig: (await import("./tailwind.config")).default,
-//   },
-// };
-
 
 export async function build(config: FreshBunBuildConfig) {
   const { rootDir } = config;
   const { distFolder, minify } = config.build;
   const routes = Array.from(
-    new Bun.Glob(Path.join(rootDir, `./routes/**/*.{ts,tsx}`)).scanSync()
+    new Bun.Glob(Path.join(rootDir, "./routes/**/*.{ts,tsx}")).scanSync(),
   );
   const clientFiles = Array.from(
-    new Bun.Glob(Path.join(rootDir, "./client/**/*.{ts,tsx}")).scanSync()
+    new Bun.Glob(Path.join(rootDir, "./client/**/*.{ts,tsx}")).scanSync(),
   );
   const cssFiles = Array.from(
-    new Bun.Glob(Path.join(rootDir, `./styles/**/*.css`)).scanSync()
+    new Bun.Glob(Path.join(rootDir, "./styles/**/*.css")).scanSync(),
   );
 
   const manifestPlugin: BunPlugin = {
@@ -61,7 +50,7 @@ export async function build(config: FreshBunBuildConfig) {
       // This will need to change to support different types of configs supported by tailwind.
       // @ts-ignore
       tailwindConfigClone.content = tailwindConfigClone.content.map((it) =>
-        Path.join(rootDir, it)
+        Path.join(rootDir, it),
       );
 
       // @ts-ignore
@@ -88,22 +77,24 @@ export async function build(config: FreshBunBuildConfig) {
     return `${parsed.name}-${hash}${parsed.ext}`;
   }
 
-  const manifest = {} as any;
+  const manifest = {} as Record<string, string>;
 
   for (const file of cssFiles) {
-    const css = await tailwindBuild({ path: file });
-    const hash = getHash(css, 8);
+    const hash = getHash(await Bun.file(file).text(), 8);
     const filePath = import.meta
       .resolve(file)
       .replace("file://", "")
       .replace(rootDir, "");
     const filename = hashedFilename(filePath, hash);
+
+    const css = await tailwindBuild({ path: file });
+
     const parsed = Path.parse(filePath);
     parsed.base = filename;
 
     await Bun.write(
       Path.join(rootDir, distFolder, `public/${Path.format(parsed)}`),
-      css
+      css,
     );
     manifest[filePath] = Path.join("./public", `${Path.format(parsed)}`);
   }
@@ -136,9 +127,9 @@ export async function build(config: FreshBunBuildConfig) {
     parsed.base = parsed.name;
     manifest[filePath] = Path.join("public", outputFiles[i]);
     manifest[Path.format(parsed)] = Path.join("public", outputFiles[i]);
-    manifest["public://" + Path.format(parsed)] = outputFiles[i];
-    manifest["public://" + Path.format(parsed) + ".js"] = outputFiles[i];
-    manifest["public://" + filePath] = outputFiles[i];
+    manifest[`public://${Path.format(parsed)}`] = outputFiles[i];
+    manifest[`public://${Path.format(parsed)}.js`] = outputFiles[i];
+    manifest[`public://${filePath}`] = outputFiles[i];
     i++;
   }
 
@@ -147,8 +138,8 @@ export async function build(config: FreshBunBuildConfig) {
     `const manifest = ${JSON.stringify(
       manifest,
       null,
-      4
-    )};export default manifest;`
+      4,
+    )};export default manifest;`,
   );
 
   // build for server
@@ -167,7 +158,6 @@ export async function build(config: FreshBunBuildConfig) {
     // additional config
     outdir: distFolder,
   });
-
 }
 
 export async function dev(config: FreshBunBuildConfig) {
@@ -178,19 +168,15 @@ export async function dev(config: FreshBunBuildConfig) {
   const preloadDestFilePath = Path.join(
     rootDir,
     ".fresh-bun",
-    "dev-preload.ts"
+    "dev-preload.ts",
   );
 
-  const pluginDestFilePath = Path.join(
-    rootDir,
-    ".fresh-bun",
-    "app-plugin.ts"
-  );
+  const pluginDestFilePath = Path.join(rootDir, ".fresh-bun", "app-plugin.ts");
 
   await Bun.write(preloadDestFilePath, preloadCode);
   await Bun.write(pluginDestFilePath, appPlugin as unknown as string);
 
-  await devServer(rootDir)
+  await devServer(rootDir);
   await Bun.$`NODE_ENV=development bun --preload ${preloadDestFilePath} --watch ${entryPoint} -- --plugin ${pluginDestFilePath}`;
 }
 

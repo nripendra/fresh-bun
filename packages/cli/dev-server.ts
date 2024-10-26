@@ -11,7 +11,7 @@ export async function devServer(rootDir: string) {
         }
       }
       return new Response(
-        JSON.stringify({ port: server.port, id: server.id, url: server.url })
+        JSON.stringify({ port: server.port, id: server.id, url: server.url }),
       );
     },
     websocket: {
@@ -29,7 +29,7 @@ export async function devServer(rootDir: string) {
     JSON.stringify({
       port: server.port,
       url: server.url,
-    })
+    }),
   );
   // process.send?.("READY");
   return server;

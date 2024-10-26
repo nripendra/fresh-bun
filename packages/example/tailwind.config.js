@@ -6,8 +6,7 @@ export default {
     "./components/**/*.{ts,tsx}",
   ],
   theme: {
-    extend: {
-    },
+    extend: {},
   },
   safelist: [{ pattern: /(alert)-./ }],
   plugins: [require("daisyui")],

@@ -1,7 +1,7 @@
 import Path from "node:path";
 import type { AppServer } from "@fresh-bun/lib";
-import { serveStatic } from "@fresh-bun/routing/serve-static";
 import { defineMiddleware } from "@fresh-bun/lib/middleware";
+import { serveStatic } from "@fresh-bun/routing/serve-static";
 
 const websocketReloaderScript = (devServer: WebSocket) =>
   defineMiddleware(
@@ -19,7 +19,7 @@ const websocketReloaderScript = (devServer: WebSocket) =>
                   window.location.reload(true);
               })
             </script>`,
-              { html: true }
+              { html: true },
             );
           });
         },
@@ -27,7 +27,7 @@ const websocketReloaderScript = (devServer: WebSocket) =>
 
       return rewriter.transform(response);
     },
-    { name: "websocketReloaderScript" }
+    { name: "websocketReloaderScript" },
   );
 
 let ws: WebSocket | null;
@@ -39,7 +39,7 @@ export default {
     appServer.use(serveStatic(".fresh-bun/.dist"));
 
     const devServerInfo = await Bun.file(
-      Path.join(rootDir, ".fresh-bun", ".devserver")
+      Path.join(rootDir, ".fresh-bun", ".devserver"),
     ).json();
 
     await new Promise((resolve) => {

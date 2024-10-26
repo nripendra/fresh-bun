@@ -1,7 +1,7 @@
 import type { Server } from "bun";
 import type { AppContext } from "./app-context";
 import { Logger } from "./logging";
-import { RequestContext } from "./request-context";
+import type { RequestContext } from "./request-context";
 import { SafeHttpNotFoundError } from "./safe-http-errors";
 
 const notFoundResponse = new Response("Not Found", { status: 404 });
@@ -19,7 +19,7 @@ const gotoNextHandlerResponse = GotoNextHandlerResponse.create();
 export class MiddlewareContext {
   constructor(
     public readonly parent: RequestContext,
-    private pipeline: MiddlewarePipeline
+    private pipeline: MiddlewarePipeline,
   ) {
     // super(
     //   parent.properties,
@@ -72,7 +72,7 @@ export class MiddlewareContext {
 export type MiddlewareFunction = (ctx: MiddlewareContext) => Promise<Response>;
 export type MiddlewareAppStartCallback = (
   appCtx: AppContext,
-  server: Server
+  server: Server,
 ) => Promise<void>;
 
 export interface MiddlewareConfig {
@@ -91,7 +91,7 @@ export class MiddlewarePipeline {
   constructor(private middlewares: Middleware[]) {
     Logger.startSpan("MiddlewarePipeline").do((logger) => {
       logger.debug(
-        `Initiated middlware pipeline with ${this.middlewares.length} items`
+        `Initiated middlware pipeline with ${this.middlewares.length} items`,
       );
     });
   }
@@ -105,11 +105,11 @@ export class MiddlewarePipeline {
         this.#index++;
         const progress = `[${this.#index}/${total}]`;
         logger.debug(
-          `Processing middleware [${currentMiddleware.config.name}] - ${progress}`
+          `Processing middleware [${currentMiddleware.config.name}] - ${progress}`,
         );
-        let response = await Promise.resolve(currentMiddleware.handle(ctx));
+        const response = await Promise.resolve(currentMiddleware.handle(ctx));
         logger.debug(
-          `Finished middleware [${currentMiddleware.config.name}] - ${progress}`
+          `Finished middleware [${currentMiddleware.config.name}] - ${progress}`,
         );
         if (response instanceof GotoNextHandlerResponse) {
           continue;
@@ -168,7 +168,7 @@ export interface DefineMiddlewareConfig {
 }
 export function defineMiddleware(
   handlerFn: MiddlewareFunction,
-  config: DefineMiddlewareConfig
+  config: DefineMiddlewareConfig,
 ) {
   return new Middleware({ handlerFn, ...config });
 }
@@ -206,15 +206,16 @@ export function upgradeWebsocket<T>(
   handler?: (ctx: MiddlewareContext) => {
     headers?: Bun.HeadersInit;
     data?: T;
-  }
+  },
 ) {
   return new Middleware({
     handlerFn: async (ctx) => {
       const url = new URL(ctx.request.url);
 
-      if (typeof path == "string") {
+      if (typeof path === "string") {
         const originalPath = path;
-        path = (input) => input.pathname == originalPath;
+        // biome-ignore lint: no-check
+        path = (input) => input.pathname === originalPath;
       }
 
       const pathMatch = path(url);

@@ -1,5 +1,5 @@
 import { cookie } from "@fresh-bun/cookies/cookie-jar";
-import { Logger, LogLevel } from "@fresh-bun/lib/logging";
+import { LogLevel, Logger } from "@fresh-bun/lib/logging";
 import { registerHyperMediaAwareness } from "@fresh-bun/routing/pages/hyper-media-helper";
 import { FreshBun } from "@fresh-bun/runtime";
 import { session, sessionAuthentication } from "@fresh-bun/session";
@@ -14,7 +14,7 @@ registerHyperMediaAwareness({
 });
 
 const rootDir = import.meta.dir;
-Logger.logLevel = LogLevel.INFO;
+Logger.setLogLevel(LogLevel.INFO);
 
 const server = await FreshBun.create({
   rootDir,

@@ -1,21 +1,21 @@
 import * as Path from "node:path";
 // import * as FileSystem from "node:fs";
 
+import type { Server, ServerWebSocket, WebSocketHandler } from "bun";
+// import { RouterPipeline, StaticRouter } from "./router";
+import { AppContext } from "./app-context";
+// import { Conventions } from "./conventions";
+// import { Logger } from "./logging";
+import { AnonymousPrincipal, Authentication } from "./authentication";
 import {
   // HandlerMiddleware,
   Middleware,
   MiddlewareContext,
-  MiddlewarePipeline,
   // ServeStaticMiddleware,
   type MiddlewareFunction,
+  MiddlewarePipeline,
 } from "./middleware";
-// import { RouterPipeline, StaticRouter } from "./router";
-import { AppContext } from "./app-context";
 import { RequestContext } from "./request-context";
-// import { Conventions } from "./conventions";
-// import { Logger } from "./logging";
-import { AnonymousPrincipal, Authentication } from "./authentication";
-import type { Server, ServerWebSocket, WebSocketHandler } from "bun";
 
 export class AppServer {
   constructor(private readonly rootDir: string = Path.dirname(Bun.main)) {}
@@ -45,12 +45,15 @@ export class AppServer {
     // } else
     if (middleware instanceof Middleware) {
       if (!middleware.config.name) {
-        middleware = new Middleware({
-          ...middleware.config,
-          name: `Middleware[${this.#middlewares.length}]`,
-        });
+        this.#middlewares.push(
+          new Middleware({
+            ...middleware.config,
+            name: `Middleware[${this.#middlewares.length}]`,
+          }),
+        );
+      } else {
+        this.#middlewares.push(middleware);
       }
-      this.#middlewares.push(middleware);
     } else {
       this.#middlewares.push(
         new Middleware({
@@ -59,13 +62,13 @@ export class AppServer {
             name ||
             middleware.name ||
             `Middleware[${this.#middlewares.length}]`,
-        })
+        }),
       );
     }
     return this;
   }
   websocket<WebSocketDataType extends { ctx: RequestContext }>(
-    websocket: WebSocketHandler<WebSocketDataType>
+    websocket: WebSocketHandler<WebSocketDataType>,
   ) {
     this.#websocketHandler = websocket;
     return this;
@@ -86,7 +89,7 @@ export class AppServer {
       Object.freeze([...this.#middlewares]) as Middleware[],
       [], // conventions,
       undefined,
-      port
+      port,
     );
 
     // const routerPipeline = new RouterPipeline({
@@ -106,7 +109,7 @@ export class AppServer {
         const properties = new Map();
         const authentication = new Authentication(
           "UNKNOWN",
-          new AnonymousPrincipal()
+          new AnonymousPrincipal(),
         );
         const ctx = new RequestContext(
           properties,
@@ -115,7 +118,7 @@ export class AppServer {
           // routerPipeline,
           // route,
           server,
-          authentication
+          authentication,
         );
 
         const pipeLine = new MiddlewarePipeline([...pipelineMiddlewares]);
@@ -133,9 +136,9 @@ export class AppServer {
       websocket: this.#websocketHandler,
     });
 
-    pipelineMiddlewares.forEach((m) =>
-      m.config.onAppStart?.(appContext, server)
-    );
+    for (const middlware of pipelineMiddlewares) {
+      middlware.config.onAppStart?.(appContext, server);
+    }
     return server;
   }
 }

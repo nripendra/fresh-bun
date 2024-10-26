@@ -1,9 +1,9 @@
+import { ValidationResult } from "@fresh-bun/lib/validation";
 import { defineHandler } from "@fresh-bun/routing/core";
 import { definePage } from "@fresh-bun/routing/pages";
-import LayoutProvider from "@fresh-bun/routing/pages/layout-provider";
-import { ValidationResult } from "@fresh-bun/lib/validation";
 import { ErrorMessages } from "@fresh-bun/routing/pages/error-message";
 import { isHyperMediaAjaxRequest } from "@fresh-bun/routing/pages/hyper-media-helper";
+import LayoutProvider from "@fresh-bun/routing/pages/layout-provider";
 import { setFlash } from "@fresh-bun/session";
 
 type LoginResponse = ValidationResult | { success: true };
@@ -33,9 +33,8 @@ export const POST = defineHandler(async (ctx) => {
           "HX-REDIRECT": "/",
         },
       });
-    } else {
-      return Response.redirect("/", 303);
     }
+    return Response.redirect("/", 303);
   }
   return response.data;
 });
@@ -110,11 +109,11 @@ export default definePage<LoginResponse | undefined>(({ ctx, data }) => {
               </div>
 
               <div className="card-actions justify-end mt-5 mr-5">
-                <button className="btn btn-primary">
+                <button type="submit" className="btn btn-primary">
                   <span
                     hx-indicator
                     className="loading loading-spinner loading-sm htmx-indicator"
-                  ></span>
+                  />
                   Login
                 </button>
               </div>

@@ -2,13 +2,13 @@ import * as Path from "node:path";
 
 import type { HttpMethod } from "@fresh-bun/lib/httpMethod";
 import { Logger } from "@fresh-bun/lib/logging";
-import { RequestContext } from "@fresh-bun/lib/request-context";
+import type { RequestContext } from "@fresh-bun/lib/request-context";
 import { SafeHttpNotFoundError } from "@fresh-bun/lib/safe-http-errors";
 import type { MatchedRoute } from "bun";
 import { useRoute } from "./use-route";
 
 export type Guard<T> = (
-  ctx: RouteStepRequestContext<T>
+  ctx: RouteStepRequestContext<T>,
 ) => Response | Promise<Response>;
 
 export type RouteHandlerResult<T> = Response | T | Promise<Response | T>;
@@ -23,7 +23,7 @@ export class RouteStepRequestContext<T> {
   handlerResult?: T;
   constructor(
     public parent: RequestContext,
-    public pipeLine: RequestHandlerProcessorPipeline<T>
+    public pipeLine: RequestHandlerProcessorPipeline<T>,
   ) {
     // super(
     //   parent.properties,
@@ -50,7 +50,7 @@ export type StepFunction<T> = (ctx: RouteStepRequestContext<T>) => StepResponse;
 export class RouteHandlerStep<T> {
   constructor(
     private handlerFn: StepFunction<T>,
-    public readonly name: string
+    public readonly name: string,
   ) {}
   async handle(ctx: RouteStepRequestContext<T>) {
     return await Promise.resolve(this.handlerFn(ctx));
@@ -76,10 +76,10 @@ export class RequestHandlerProcessorPipeline<T> {
         this.#index++;
         const progress = `[${this.#index}/${total}]`;
         logger.debug(`Processing step [${currentStep.name}] - ${progress}`);
-        let response = await Promise.resolve(currentStep.handle(ctx));
+        const response = await Promise.resolve(currentStep.handle(ctx));
         logger.debug(`Finished step [${currentStep.name}] - ${progress}`);
         return response;
-      }
+      },
     );
   }
   async start(ctx: RouteStepRequestContext<T>) {
@@ -94,7 +94,10 @@ export class RequestHandlerProcessorPipeline<T> {
 }
 
 export class DefinedHandler<T> {
-  constructor(public handlerFn: RouteHandler<T>, public guard?: Guard<T>) {}
+  constructor(
+    public handlerFn: RouteHandler<T>,
+    public guard?: Guard<T>,
+  ) {}
 }
 
 /**
@@ -107,7 +110,7 @@ export function defineHandler<T>(
   handler: RouteHandler<T>,
   config?: {
     _guard?: Guard<T>;
-  }
+  },
 ) {
   return new DefinedHandler(handler, config?._guard);
 }
@@ -142,14 +145,14 @@ async function tryImport(path: string) {
 
 const guardsCache = new Map<string, Guard<unknown>[]>();
 export async function findFolderGuards<T>(
-  ctx: RequestContext
+  ctx: RequestContext,
 ): Promise<Guard<T>[]> {
   return Logger.startSpan("findRouteGuards").do(async (logger) => {
     const guards = [] as Guard<T>[];
     logger.debug("Start");
     async function findRouteGuardsInner(
       folderPath: string,
-      routerRootDir: string
+      routerRootDir: string,
     ) {
       logger.debug(folderPath);
       const guardPath = Path.join(folderPath, "_guard");
@@ -171,14 +174,12 @@ export async function findFolderGuards<T>(
         return;
       }
 
-      if (
-        Path.resolve(routerRootDir, folderPath) === Path.resolve(routerRootDir)
-      ) {
+      const fp = Path.resolve(routerRootDir, folderPath);
+      if (fp === Path.resolve(routerRootDir)) {
         logger.debug("Reached routerRootDir");
         return;
-      } else {
-        await findRouteGuardsInner(Path.dirname(folderPath), routerRootDir);
       }
+      await findRouteGuardsInner(Path.dirname(folderPath), routerRootDir);
     }
     const route = useRoute(ctx);
     if (route) {
@@ -211,9 +212,12 @@ export const routeStepFactory = {
     return new RouteHandlerStep<T>((ctx) => {
       const method = ctx.parent.request.method as HttpMethod;
       const handler = module?.[method];
-      if (handler?.constructor?.name == "DefinedHandler") {
+      if (handler?.constructor?.name === "DefinedHandler") {
         if ((handler as DefinedHandler<T>).guard) {
-          return (handler as DefinedHandler<T>).guard!(ctx);
+          const guard = (handler as DefinedHandler<T>).guard;
+          if (guard) {
+            return guard(ctx);
+          }
         }
       }
       return ctx.next();
@@ -224,7 +228,7 @@ export const routeStepFactory = {
       const method = ctx.parent.request.method as HttpMethod;
       const handler = module?.[method];
       let handlerFn: RouteHandler<T> | undefined = undefined;
-      if (handler?.constructor?.name == "DefinedHandler") {
+      if (handler?.constructor?.name === "DefinedHandler") {
         handlerFn = (handler as DefinedHandler<T>).handlerFn;
       } else if (handler) {
         handlerFn = handler as RouteHandler<T>;
@@ -236,9 +240,8 @@ export const routeStepFactory = {
           return handlerResult;
           // } else if (isValidElement(handlerResult)) {
           //   return renderJsx(handlerResult);
-        } else {
-          ctx.handlerResult = handlerResult;
         }
+        ctx.handlerResult = handlerResult;
       }
       return ctx.next();
     }, "handler");
@@ -249,7 +252,8 @@ export const routeStepFactory = {
         const simplePrimitiveTypes = ["bigint", "boolean", "number", "string"];
         if (ctx.handlerResult.constructor === {}.constructor) {
           return Response.json(ctx.handlerResult);
-        } else if (
+        }
+        if (
           simplePrimitiveTypes.includes(typeof ctx.handlerResult) ||
           ctx.handlerResult instanceof Date
         ) {

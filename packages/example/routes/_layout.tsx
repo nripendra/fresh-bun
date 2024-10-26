@@ -1,24 +1,24 @@
-// import css from "../style.css";
-import { defineLayout } from "@fresh-bun/routing/pages/layout-provider";
-import {
-  createStyle,
-  createScript,
-} from "@fresh-bun/routing/pages/client-helper";
 import {
   AnonymousPrincipal,
   WellKnownClaims,
 } from "@fresh-bun/lib/authentication";
+import {
+  createScript,
+  createStyle,
+} from "@fresh-bun/routing/pages/client-helper";
+// import css from "../style.css";
+import { defineLayout } from "@fresh-bun/routing/pages/layout-provider";
 import { Navbar } from "../components/navbar";
 
 const Style = createStyle(import.meta.resolve("../styles/style.css"));
 const Script = createScript(import.meta.resolve("../client/index"));
 
 export default defineLayout(({ ctx, head, children }) => {
-  let isLoggedIn = !(
+  const isLoggedIn = !(
     ctx.authentication.principal instanceof AnonymousPrincipal
   );
-  let loginName = ctx.authentication.principal.getClaim<string>(
-    WellKnownClaims.Username
+  const loginName = ctx.authentication.principal.getClaim<string>(
+    WellKnownClaims.Username,
   );
   return (
     <html lang={"en"} data-theme="light">
@@ -32,8 +32,8 @@ export default defineLayout(({ ctx, head, children }) => {
         <link href={"/favicon.ico"} rel={"icon"} type={"image/ico"} />
         <link rel="prefetch" href="/" as={"document"} />
         <link rel="prefetch" href="/login" as={"document"} />
-        <script src="https://unpkg.com/htmx.org@1.9.5"></script>
-        <script src="https://unpkg.com/htmx-ext-disable-element@2.0.0/disable-element.js"></script>
+        <script src="https://unpkg.com/htmx.org@1.9.5" />
+        <script src="https://unpkg.com/htmx-ext-disable-element@2.0.0/disable-element.js" />
       </head>
       <body className={"flex flex-col"}>
         <header className={"flex-none h-24"}>

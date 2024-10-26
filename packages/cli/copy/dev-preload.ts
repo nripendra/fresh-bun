@@ -1,7 +1,7 @@
-import Path from "node:path";
 import Fs, { type WatchListener } from "node:fs";
-import type { FreshBunBuildConfig } from "./build-config";
-import { parseArgs } from "util";
+import Path from "node:path";
+import { parseArgs } from "node:util";
+import type { FreshBunBuildConfig } from "../build-config";
 import { getWs } from "./app-plugin";
 
 Bun.plugin({
@@ -10,7 +10,7 @@ Bun.plugin({
     builder.module("client-manifest", async () => {
       return {
         contents: await Bun.file(
-          Path.resolve(".fresh-bun", "manifest.js")
+          Path.resolve(".fresh-bun", "manifest.js"),
         ).text(),
         loader: "js",
       };
@@ -19,16 +19,16 @@ Bun.plugin({
 });
 
 export async function buildBrowserArtifactsAndManifest(
-  config: FreshBunBuildConfig
+  config: FreshBunBuildConfig,
 ) {
   const { rootDir } = config;
   const { minify } = config.build;
   const distFolder = Path.join(".fresh-bun", ".dist");
   const clientFiles = Array.from(
-    new Bun.Glob(Path.join(rootDir, "./client/**/*.{ts,tsx}")).scanSync()
+    new Bun.Glob(Path.join(rootDir, "./client/**/*.{ts,tsx}")).scanSync(),
   );
   const cssFiles = Array.from(
-    new Bun.Glob(Path.join(rootDir, `./styles/**/*.css`)).scanSync()
+    new Bun.Glob(Path.join(rootDir, "./styles/**/*.css")).scanSync(),
   );
 
   await Bun.$`mkdir -p ${distFolder}`;
@@ -48,7 +48,7 @@ export async function buildBrowserArtifactsAndManifest(
       // This will need to change to support different types of configs supported by tailwind.
       // @ts-ignore
       tailwindConfigClone.content = tailwindConfigClone.content.map((it) =>
-        Path.join(rootDir, it)
+        Path.join(rootDir, it),
       );
 
       // @ts-ignore
@@ -80,18 +80,18 @@ export async function buildBrowserArtifactsAndManifest(
     return `${parsed.name}-${hash}${parsed.ext}`;
   }
 
-  let oldManifest = {} as any;
+  let oldManifest = {} as Record<string, string>;
   const manifestFile = Path.join(rootDir, ".fresh-bun", "/manifest.js");
   if (await Bun.file(manifestFile).exists()) {
     const existingManifestContent = await Bun.file(manifestFile).text();
     oldManifest = JSON.parse(
       existingManifestContent
         .replace("const manifest = ", "")
-        .replace(";export default manifest;", "")
+        .replace(";export default manifest;", ""),
     );
   }
 
-  const manifest = {} as any;
+  const manifest = {} as Record<string, string>;
 
   for (const file of cssFiles) {
     const hash = getHash(await Bun.file(file).text(), 8);
@@ -148,13 +148,13 @@ export async function buildBrowserArtifactsAndManifest(
     const parsed = Path.parse(filePath);
     parsed.base = parsed.name;
     manifest[filePath] = Path.join(distFolder, outputFiles[i]);
-    if (oldManifest[filePath] !== manifest[filePath]) {
+    if (oldManifest[filePath] && oldManifest[filePath] !== manifest[filePath]) {
       Fs.unlinkSync(Path.join(rootDir, oldManifest[filePath]));
     }
     manifest[Path.format(parsed)] = Path.join(distFolder, outputFiles[i]);
-    manifest["public://" + Path.format(parsed)] = outputFiles[i];
-    manifest["public://" + Path.format(parsed) + ".js"] = outputFiles[i];
-    manifest["public://" + filePath] = outputFiles[i];
+    manifest[`public://${Path.format(parsed)}`] = outputFiles[i];
+    manifest[`public://${Path.format(parsed)}.js`] = outputFiles[i];
+    manifest[`public://${filePath}`] = outputFiles[i];
     i++;
   }
 
@@ -163,8 +163,8 @@ export async function buildBrowserArtifactsAndManifest(
     `const manifest = ${JSON.stringify(
       manifest,
       null,
-      4
-    )};export default manifest;`
+      4,
+    )};export default manifest;`,
   );
 }
 
@@ -192,7 +192,7 @@ const debounce = <T>(mainFunction: WatchListener<T>, delay: number) => {
   let timer: NodeJS.Timer;
 
   // Return an anonymous function that takes in any number of arguments
-  return function (event: Fs.WatchEventType, filename: T | null) {
+  return (event: Fs.WatchEventType, filename: T | null) => {
     // Clear the previous timer to prevent the execution of 'mainFunction'
     clearTimeout(timer);
 
@@ -204,20 +204,18 @@ const debounce = <T>(mainFunction: WatchListener<T>, delay: number) => {
 };
 
 function clearManifestRegistry() {
-  Loader.registry
+  for (const entry of Loader.registry
     .keys()
-    .filter((it) => it.includes("_layout") || it.includes("client-manifest"))
-    .forEach((it) => {
-      Loader.registry.delete(it);
-    });
+    .filter((it) => it.includes("_layout") || it.includes("client-manifest"))) {
+    Loader.registry.delete(entry);
+  }
 }
 function clearJsRegistry() {
-  Loader.registry
+  for (const entry of Loader.registry
     .keys()
-    .filter((it) => it.includes("client-helper"))
-    .forEach((it) => {
-      Loader.registry.delete(it);
-    });
+    .filter((it) => it.includes("client-helper"))) {
+    Loader.registry.delete(entry);
+  }
 }
 
 const watchDirs = [
@@ -235,47 +233,15 @@ Fs.watch(
       if (watchDirs.includes(Path.join(rootDir, Path.dirname(f)))) {
         await buildBrowserArtifactsAndManifest(config);
         clearManifestRegistry();
-        if (Path.dirname(f) == "client") {
+        if (Path.dirname(f) === "client") {
           clearJsRegistry();
         }
-        getWs()?.send("CHANGE: " + f);
+        getWs()?.send(`CHANGE: ${f}`);
       }
     }
-  }, 500)
+  }, 500),
 );
 
 // Probably issue with typescript, as it doesn't understand `with { type: "text"}`,
 // it expects a default export from this module.
 export default "";
-
-////
-// async function devServer(rootDir: string) {
-//   if (await Bun.file(Path.join(rootDir, ".fresh-bun", ".devserver")).exists()) {
-//     const devServerInfo = await Bun.file(
-//       Path.join(rootDir, ".fresh-bun", ".devserver")
-//     ).json();
-//     if (devServerInfo.port) {
-//       try {
-//         const info = await (
-//           await fetch(`http://localhost:${devServerInfo.port}/info`)
-//         ).json();
-//         return;
-//       } catch (e) {
-//         console.error(e);
-//       }
-//     }
-//   }
-//   // start child. YEAH!
-//   var MANFILE = import.meta.resolve("./dev-server").replace("file:///", "/");
-//   var child = cp.spawn("bun", [MANFILE, rootDir], {
-//     // detached: true,
-//     stdio: ["inherit", "inherit", "inherit", "ipc"],
-//   });
-//   // await
-//   await new Promise((resolve) => {
-//     child.on("message", () => {
-//       resolve({});
-//     });
-//   });
-// }
-//

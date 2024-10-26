@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /****/
-.text-error:first-letter{
+.text-error:first-letter {
   text-transform: capitalize;
 }
 
@@ -17,18 +17,18 @@ body {
   width: 100%;
 }
 
-.htmx-indicator{
+.htmx-indicator {
   display: none;
-  opacity:0;
+  opacity: 0;
   transition: opacity 500ms ease-in;
 }
 
-.htmx-request .htmx-indicator{
+.htmx-request .htmx-indicator {
   display: inline-block;
-  opacity:1;
+  opacity: 1;
 }
 
-.htmx-request.htmx-indicator{
+.htmx-request.htmx-indicator {
   display: inline-block;
-  opacity:1;
+  opacity: 1;
 }

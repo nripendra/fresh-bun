@@ -9,6 +9,6 @@ export class AppContext {
     public readonly middlewares: Middleware[],
     public readonly conventions: Convention[],
     public errorHandler?: Middleware,
-    public readonly port: number = 3000
+    public readonly port: number = 3000,
   ) {}
 }
