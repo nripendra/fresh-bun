@@ -12,7 +12,7 @@ import { fileSystemRouter } from "@fresh-bun/routing/filesystem-router";
 import { pageHandler } from "@fresh-bun/routing/pages";
 import cp from "node:child_process";
 
-export type FreshBunBuildConfig = {
+export type FreshBunRuntimeConfig = {
   rootDir: string;
   clientDir: string;
   manifestDir: string;
@@ -147,7 +147,7 @@ function isDev() {
 export class FreshBun {
   #appServer: AppServer;
   // #manifestBuilder?: Promise<unknown>;
-  private constructor(public readonly config: FreshBunBuildConfig) {
+  private constructor(public readonly config: FreshBunRuntimeConfig) {
     // if (isDev()) {
     //   this.#manifestBuilder = installBunPlugin(config);
     // }
@@ -168,6 +168,7 @@ export class FreshBun {
 
     if (isDev()) {
       this.#appServer.use(serveStatic(".fresh-bun/.dist"));
+      // TODO: plugin.
       //   // await this.#manifestBuilder;
       //   // await devServer(this.config.rootDir);
       //   const devServerInfo = await Bun.file(
@@ -186,13 +187,14 @@ export class FreshBun {
     try {
       return await Promise.resolve(this.#appServer.listen(port));
     } finally {
-      if (isDev()) {
-        if (this.#devServer) {
-          console.log(this.#devServer.url);
-          this.#devServer.send("Server Restart!");
-          console.log("Sent message on dev-serve!");
-        }
-      }
+      // TODO: plugin
+      // if (isDev()) {
+      //   if (this.#devServer) {
+      //     console.log(this.#devServer.url);
+      //     this.#devServer.send("Server Restart!");
+      //     console.log("Sent message on dev-serve!");
+      //   }
+      // }
     }
   }
 
@@ -204,7 +206,7 @@ export class FreshBun {
     islands,
     cssFiles,
     manifestDir,
-  }: Partial<FreshBunBuildConfig> & Pick<FreshBunBuildConfig, "rootDir">) {
+  }: Partial<FreshBunRuntimeConfig> & Pick<FreshBunRuntimeConfig, "rootDir">) {
     Bun.env.ROOT_DIR = rootDir;
     if (!tailwindConfigFile) {
       tailwindConfigFile = Path.join(rootDir, "./tailwind.config");

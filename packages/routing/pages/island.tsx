@@ -22,10 +22,6 @@ export function island<T extends ComponentType<any>>(
   importFn: () => Promise<{ default: T }>
 ): T {
   const modulePath = Path.join("/", extractModulePath(importFn.toString()));
-  console.log({ modulePath })
-  console.log("modulePath ===> ", modulePath);
-  console.log(`manifest[${'public://' + modulePath}] ===> `, manifest['public://' + modulePath]);
-  console.log(manifest)
   const ActualComponent = lazy(importFn) as any;
 
   return ((props: ComponentProps<T>) => {

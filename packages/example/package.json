@@ -21,6 +21,6 @@
     "@fresh-bun/routing": "workspace:*",
     "@fresh-bun/runtime": "workspace:*",
     "@fresh-bun/session": "workspace:*",
-    "@fresh-bun/build": "link:@fresh-bun/build"
+    "@fresh-bun/cli": "link:@fresh-bun/cli"
   }
 }

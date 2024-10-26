@@ -14,9 +14,8 @@ registerHyperAwareness({
 });
 
 const rootDir = import.meta.dir;
-Logger.logLevel = LogLevel.ERROR;
+Logger.logLevel = LogLevel.INFO;
 
-console.log({ rootDir })
 const server = await FreshBun.create({
   rootDir,
 })

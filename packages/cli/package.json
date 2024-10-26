@@ -1,5 +1,5 @@
 {
-  "name": "@fresh-bun/build",
+  "name": "@fresh-bun/cli",
   "module": "index.ts",
   "type": "module",
   "devDependencies": {

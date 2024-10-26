@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 .text-error:first-letter{
-    text-transform: capitalize;
+  text-transform: capitalize;
 }
 
 html {
