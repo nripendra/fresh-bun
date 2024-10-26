@@ -1,0 +1,5 @@
+bun bun --target bun --outdir ./dist --splitting index.ts 
+bun bun --target bun --outdir ./dist/routes --splitting ./routes/**/*.*
+bun bun --target bun --outdir ./dist/client --splitting ./client/**/*.*
+cp -r ./.fresh-bun ./dist
+cp -r ./public ./dist 

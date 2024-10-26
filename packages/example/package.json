@@ -3,7 +3,8 @@
   "module": "index.ts",
   "type": "module",
   "scripts": {
-    "dev": "NODE_ENV=development bun --watch index.ts"
+    "dev": "fresh-bun dev .",
+    "build": "NODE_ENV=production fresh-bun build ."
   },
   "devDependencies": {
     "@types/bun": "latest",
@@ -19,6 +20,7 @@
     "@fresh-bun/cookies": "workspace:*",
     "@fresh-bun/routing": "workspace:*",
     "@fresh-bun/runtime": "workspace:*",
-    "@fresh-bun/session": "workspace:*"
+    "@fresh-bun/session": "workspace:*",
+    "@fresh-bun/build": "link:@fresh-bun/build"
   }
 }

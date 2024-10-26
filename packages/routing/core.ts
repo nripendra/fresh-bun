@@ -211,9 +211,9 @@ export const routeStepFactory = {
     return new RouteHandlerStep<T>((ctx) => {
       const method = ctx.parent.request.method as HttpMethod;
       const handler = module?.[method];
-      if (handler instanceof DefinedHandler) {
-        if (handler.guard) {
-          return handler.guard(ctx);
+      if (handler?.constructor?.name == "DefinedHandler") {
+        if ((handler as DefinedHandler<T>).guard) {
+          return (handler as DefinedHandler<T>).guard!(ctx);
         }
       }
       return ctx.next();
@@ -224,10 +224,10 @@ export const routeStepFactory = {
       const method = ctx.parent.request.method as HttpMethod;
       const handler = module?.[method];
       let handlerFn: RouteHandler<T> | undefined = undefined;
-      if (handler instanceof DefinedHandler) {
-        handlerFn = handler.handlerFn;
+      if (handler?.constructor?.name == "DefinedHandler") {
+        handlerFn = (handler as DefinedHandler<T>).handlerFn;
       } else if (handler) {
-        handlerFn = handler;
+        handlerFn = handler as RouteHandler<T>;
       }
 
       if (handlerFn) {

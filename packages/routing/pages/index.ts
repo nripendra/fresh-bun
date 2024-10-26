@@ -73,9 +73,11 @@ export async function renderJsx(
 function getPageFn<T>(module: PagesModule<T>) {
   const page = module.default;
   let pageFn: PageFactory<PageProps<T>> | undefined = undefined;
-  if (page instanceof DefinedPages) {
-    pageFn = page.pageFactory;
-  } else if (page instanceof Function) {
+
+  if (page?.constructor?.name == "DefinedPages") {
+    const pg = page as DefinedPages<T>;
+    pageFn = pg.pageFactory;
+  } else if (typeof page == "function") {
     pageFn = page as PageFactory<PageProps<T>>;
   }
 
@@ -87,10 +89,11 @@ const pageStepFactory = {
   pageGuard<T>(module: PagesModule<T>) {
     return new RouteHandlerStep<T>((ctx) => {
       const page = module.default;
-      if (page instanceof DefinedPages) {
-        if (page.guard) {
-          page.guard(ctx);
-          return page.guard(ctx);
+      if (page?.constructor?.name == "DefinedPages") {
+        const pg = page as DefinedPages<T>;
+        if (pg.guard) {
+          pg.guard(ctx);
+          return pg.guard(ctx);
         }
       }
       return ctx.next();
@@ -197,7 +200,7 @@ export const errorPage = () =>
               "Incorrect convention setup: Could not find error page module"
             );
           }
-          
+
           const pageFn = getPageFn(errorPageModule);
           if (pageFn) {
             let status = 200;
