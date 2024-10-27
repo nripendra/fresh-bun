@@ -1,4 +1,4 @@
-import { cookie } from "@fresh-bun/cookies/cookie-jar";
+import { cookie } from "@fresh-bun/cookies";
 import { LogLevel, Logger } from "@fresh-bun/lib/logging";
 import { registerHyperMediaAwareness } from "@fresh-bun/routing/pages/hyper-media-helper";
 import { FreshBun } from "@fresh-bun/runtime";

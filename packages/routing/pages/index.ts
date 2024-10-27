@@ -11,7 +11,6 @@ import { renderToStringAsync } from "preact-render-to-string";
 import {
   type Guard,
   RequestHandlerProcessorPipeline,
-  type RouteHandler,
   RouteHandlerStep,
   type RouteModule,
   RouteStepRequestContext,
@@ -25,15 +24,8 @@ import { useRoute } from "../use-route";
 export type PageProps<T> = JSX.IntrinsicAttributes & {
   ctx: RequestContext;
   data: T;
-  // validationResult: ValidationResult;
 };
 
-export class DefinedHandler<T> {
-  constructor(
-    public handlerFn: RouteHandler<T>,
-    public guard?: Guard<T>,
-  ) {}
-}
 export type PageFactory<T> = (props: T) => JSX.Element | Promise<JSX.Element>;
 
 class DefinedPages<T> {
@@ -95,7 +87,6 @@ const pageStepFactory = {
       if (page?.constructor?.name === "DefinedPages") {
         const pg = page as DefinedPages<T>;
         if (pg.guard) {
-          pg.guard(ctx);
           return pg.guard(ctx);
         }
       }
@@ -110,17 +101,10 @@ const pageStepFactory = {
       const pageFn = getPageFn(module);
       if (pageFn) {
         const data = ctx.handlerResult as T;
-        // let validationResult: ValidationResult = (
-        //   (ctx.handlerResult as any) || {}
-        // ).validationResult;
-        // if (!(validationResult instanceof ValidationResult)) {
-        //   validationResult = new ValidationResult();
-        // }
         return renderJsx(
           pageFn({
             ctx: ctx.parent,
             data,
-            // validationResult,
           }),
         );
       }
@@ -160,7 +144,7 @@ export const pageHandler = ({
     },
     {
       name: "pages",
-      async onAppStart(ctx, server) {
+      onAppStart(ctx, server) {
         ctx.conventions.push(new Convention("layoutFile", defaultLayoutFile));
         ctx.conventions.push(new Convention("errorPage", errorPageFile));
         ctx.errorHandler = errorPage();

@@ -69,9 +69,11 @@ export const serveStatic = (
     pragma: "",
   },
 ) => {
-  const router = new StaticRouter(folder);
   return defineMiddleware(
     async (ctx: MiddlewareContext) => {
+      const router = new StaticRouter(
+        Path.join(ctx.appContext.rootDir, folder),
+      );
       return Logger.startSpan("serve-static").do((logger) => {
         logger.debug("Start");
         const match = router.match(ctx.request);
@@ -93,7 +95,7 @@ export const serveStatic = (
     },
     {
       name: "serve-static",
-      async onAppStart(ctx, _server) {
+      onAppStart(ctx, _server) {
         ctx.staticFolders.push(folder);
       },
     },

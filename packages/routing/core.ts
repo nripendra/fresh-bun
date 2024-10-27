@@ -24,17 +24,7 @@ export class RouteStepRequestContext<T> {
   constructor(
     public parent: RequestContext,
     public pipeLine: RequestHandlerProcessorPipeline<T>,
-  ) {
-    // super(
-    //   parent.properties,
-    //   parent.appContext,
-    //   parent.request,
-    //   parent.router,
-    //   parent.route,
-    //   parent.server,
-    //   parent.authentication
-    // );
-  }
+  ) {}
   next() {
     return this.pipeLine.consumeNext(this);
   }

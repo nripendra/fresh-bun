@@ -4,7 +4,7 @@ import { lazy } from "preact/compat";
 export function createStyle(path: string) {
   return lazy(async () => {
     const manifest = (await import("client-manifest")).default;
-    const rootDir = Bun.env.ROOT_DIR ?? "";
+    const rootDir = Bun.env.FRESH_BUN_ROOT_DIR ?? "";
     const key = path.replace("file://", "").replace(rootDir, "");
     const css = await Bun.file(Path.join(rootDir, manifest[key])).text();
     const style = () => (
@@ -18,7 +18,7 @@ export function createStyle(path: string) {
 export function createScript(path: string) {
   return lazy(async () => {
     const manifest = (await import("client-manifest")).default;
-    const rootDir = Bun.env.ROOT_DIR ?? "";
+    const rootDir = Bun.env.FRESH_BUN_ROOT_DIR ?? "";
     const key = path.replace("file://", "").replace(rootDir, "");
     const parsed = Path.parse(path);
     parsed.base = parsed.name;

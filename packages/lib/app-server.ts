@@ -1,48 +1,24 @@
-import * as Path from "node:path";
-// import * as FileSystem from "node:fs";
-
 import type { WebSocketHandler } from "bun";
-// import { RouterPipeline, StaticRouter } from "./router";
 import { AppContext } from "./app-context";
-// import { Conventions } from "./conventions";
-// import { Logger } from "./logging";
 import { AnonymousPrincipal, Authentication } from "./authentication";
 import {
-  // HandlerMiddleware,
   Middleware,
   MiddlewareContext,
-  // ServeStaticMiddleware,
   type MiddlewareFunction,
   MiddlewarePipeline,
 } from "./middleware";
 import { RequestContext } from "./request-context";
+import { SafeHttpError } from "./safe-http-errors";
 
 export class AppServer {
-  constructor(private readonly rootDir: string = Path.dirname(Bun.main)) {}
+  constructor(private readonly rootDir: string) {
+    Bun.env.FRESH_BUN_ROOT_DIR = rootDir;
+  }
   #middlewares: Middleware[] = [];
-  // #handler?: HandlerMiddleware;
-  // #staticRouters: StaticRouter[] = [];
-  // #staticFolders: string[] = [];
   #websocketHandler?: WebSocketHandler<unknown>;
   use(middleware: MiddlewareFunction, name?: string): AppServer;
   use(middleware: Middleware): AppServer;
   use(middleware: Middleware | MiddlewareFunction, name?: string): AppServer {
-    // if (middleware instanceof ServeStaticMiddleware) {
-    //   const dirname = this.rootDir;
-    //   let staticFolder: string = Path.resolve(dirname, middleware.folder);
-    //   // todo do this only if development mode is true
-    //   if (!FileSystem.existsSync(staticFolder)) {
-    //     // for development purpose only
-    //     staticFolder = Path.resolve(Path.dirname(dirname), middleware.folder);
-    //   }
-
-    //   this.#staticRouters.push(new StaticRouter(staticFolder));
-    //   this.#staticFolders.push(staticFolder);
-    // }
-    // if (middleware instanceof HandlerMiddleware) {
-    //   // Adding multiple HandlerMiddleware will overwrite the old one.
-    //   this.#handler = middleware;
-    // } else
     if (middleware instanceof Middleware) {
       if (!middleware.config.name) {
         this.#middlewares.push(
@@ -73,15 +49,8 @@ export class AppServer {
     this.#websocketHandler = websocket;
     return this;
   }
-  listen(port = 3000) {
+  listen(port = Number.parseInt(Bun.env.FRESH_BUN_PORT ?? "3000")) {
     const pipelineMiddlewares = [...this.#middlewares];
-    // if (this.#handler) {
-    //   pipelineMiddlewares.push(this.#handler);
-    // }
-
-    // const conventions = (
-    //   this.#handler?.conventions ?? new Conventions("./routes")
-    // ).resolve(this.rootDir);
 
     const appContext = new AppContext(
       this.rootDir,
@@ -92,20 +61,9 @@ export class AppServer {
       port,
     );
 
-    // const routerPipeline = new RouterPipeline({
-    //   routers: [...this.#staticRouters],
-    // });
-    // if (this.#handler) {
-    //   routerPipeline.routers.push(
-    //     new Bun.FileSystemRouter({
-    //       dir: conventions.routesDir,
-    //       style: "nextjs",
-    //     })
-    //   );
-    // }
     const server = Bun.serve({
+      port,
       async fetch(request: Request, server) {
-        // const route = routerPipeline.match(request);
         const properties = new Map();
         const authentication = new Authentication(
           "UNKNOWN",
@@ -115,8 +73,6 @@ export class AppServer {
           properties,
           appContext,
           request,
-          // routerPipeline,
-          // route,
           server,
           authentication,
         );
@@ -130,11 +86,16 @@ export class AppServer {
           if (appContext.errorHandler) {
             return await appContext.errorHandler.handle(middleWareCtx);
           }
+          if (e instanceof SafeHttpError) {
+            return Response.json({ message: e.message }, { status: e.status });
+          }
           throw e;
         }
       },
       websocket: this.#websocketHandler,
     });
+
+    appContext.__setPort(server.port);
 
     for (const middlware of pipelineMiddlewares) {
       middlware.config.onAppStart?.(appContext, server);

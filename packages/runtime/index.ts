@@ -1,8 +1,10 @@
 import { parseArgs } from "node:util";
 import type { Middleware, MiddlewareFunction } from "@fresh-bun/lib/middleware";
+import type { RequestContext } from "@fresh-bun/lib/request-context";
 import { fileSystemRouter } from "@fresh-bun/routing/filesystem-router";
 import { pageHandler } from "@fresh-bun/routing/pages";
 import { serveStatic } from "@fresh-bun/routing/serve-static";
+import type { WebSocketHandler } from "bun";
 import { AppServer } from "../lib/app-server";
 
 export type FreshBunRuntimeConfig = {
@@ -38,7 +40,12 @@ export class FreshBun {
     this.#appServer.use(middleware, name);
     return this;
   }
-
+  websocket<WebSocketDataType extends { ctx: RequestContext }>(
+    websocket: WebSocketHandler<WebSocketDataType>,
+  ) {
+    this.#appServer.websocket(websocket);
+    return this;
+  }
   async serve(port = 3000) {
     this.#appServer.use(serveStatic("./public"));
     if (values.plugin) {
@@ -58,11 +65,7 @@ export class FreshBun {
     }
   }
 
-  static create({
-    rootDir,
-  }: Partial<FreshBunRuntimeConfig> & Pick<FreshBunRuntimeConfig, "rootDir">) {
-    Bun.env.ROOT_DIR = rootDir;
-
+  static create({ rootDir }: FreshBunRuntimeConfig) {
     return new FreshBun({
       rootDir,
     });

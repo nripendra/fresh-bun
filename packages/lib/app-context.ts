@@ -9,6 +9,13 @@ export class AppContext {
     public readonly middlewares: Middleware[],
     public readonly conventions: Convention[],
     public errorHandler?: Middleware,
-    public readonly port: number = 3000,
+    private _port = 3000,
   ) {}
+
+  get port() {
+    return this._port;
+  }
+  __setPort(port: number) {
+    this._port = port;
+  }
 }

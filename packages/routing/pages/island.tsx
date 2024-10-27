@@ -1,3 +1,4 @@
+// @jsxImportSource preact
 import Path from "node:path";
 import manifest from "client-manifest";
 import type { ComponentChildren, ComponentProps, ComponentType } from "preact";

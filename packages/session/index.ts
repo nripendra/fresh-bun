@@ -5,7 +5,7 @@ import {
   CookieMiddlware,
   getIncommingCookie,
   setCookie,
-} from "@fresh-bun/cookies/cookie-jar";
+} from "@fresh-bun/cookies";
 import {
   AnonymousPrincipal,
   Authentication,
@@ -20,6 +20,7 @@ const UUID_REGEX =
   /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i;
 
 const SESSION_KEY = "__Session";
+const SESSION_STORE_KEY = "__session_store";
 
 type UUID = `${string}-${string}-${string}-${string}-${string}`;
 export interface Session {
@@ -119,7 +120,10 @@ export function session(config?: SessionMiddlewareConfig) {
     config.store ??
     sqliteSessionStore(
       (() => {
-        const defaultSessionPath = "./.fresh-bun/sessions";
+        const defaultSessionPath = Path.join(
+          Bun.env.FRESH_BUN_ROOT_DIR ?? "./",
+          ".fresh-bun/sessions",
+        );
         if (!FileSystem.existsSync(defaultSessionPath)) {
           FileSystem.mkdirSync(defaultSessionPath, { recursive: true });
         }
@@ -139,37 +143,12 @@ export function session(config?: SessionMiddlewareConfig) {
     handlerFn: async (ctx) => {
       return Logger.startSpan("SessionMiddleware").do(async (logger) => {
         logger.debug("Start - ", ctx.request.url);
-        const CookieMiddlwareIndex = ctx.appContext.middlewares.findIndex(
-          (it) => it instanceof CookieMiddlware,
-        );
-        if (CookieMiddlwareIndex === -1) {
-          logger.debug("Incorrect setup. No cookie middleware found");
-          throw new Error(
-            "Session middleware cannot be used without using cookie middleware first.",
-          );
-        }
-        const SelfIndex = ctx.appContext.middlewares.findIndex(
-          (it) => it instanceof SessionMiddleware,
-        );
-        if (SelfIndex <= CookieMiddlwareIndex) {
-          logger.debug(
-            "Incorrect setup. Cookie middleware is confiured after SessionMiddleware",
-          );
-          throw new Error(
-            "Cookie middleware needs to be setup before the session middleware.",
-          );
-        }
-
         ctx.properties.set("__session_cookie_name", cookieName);
-        ctx.properties.set("__session_store", store);
+        ctx.properties.set(SESSION_STORE_KEY, store);
 
         const now = new Date().getTime();
         let session: Session;
         const sessionId = getIncommingCookie(ctx.parent, cookieName);
-        if (ctx.request.url === "http://localhost:3000/api/data") {
-          console.table(sessionId);
-          console.table(ctx.request.headers);
-        }
 
         if (
           typeof sessionId?.value === "string" &&
@@ -227,13 +206,31 @@ export function session(config?: SessionMiddlewareConfig) {
       });
     },
     name: "session-middleware",
+    onAppStart(ctx, server) {
+      const CookieMiddlwareIndex = ctx.middlewares.findIndex(
+        (it) => it instanceof CookieMiddlware,
+      );
+      if (CookieMiddlwareIndex === -1) {
+        throw new Error(
+          "Session middleware cannot be used without using cookie middleware first.",
+        );
+      }
+      const SelfIndex = ctx.middlewares.findIndex(
+        (it) => it instanceof SessionMiddleware,
+      );
+      if (SelfIndex <= CookieMiddlwareIndex) {
+        throw new Error(
+          "Cookie middleware needs to be setup before the session middleware.",
+        );
+      }
+    },
   });
 }
 
 export function setSessionData<T>(ctx: RequestContext, key: string, value: T) {
   const session = ctx.properties.get(SESSION_KEY) as Session;
   session[key] = value;
-  const store = ctx.properties.get("__session_store") as SessionStore;
+  const store = ctx.properties.get(SESSION_STORE_KEY) as SessionStore;
   if (store) {
     store.save(session);
   }
@@ -242,14 +239,14 @@ export function setSessionData<T>(ctx: RequestContext, key: string, value: T) {
 export function removeSessionData(ctx: RequestContext, key: string) {
   const session = ctx.properties.get(SESSION_KEY) as Session;
   delete session[key];
-  const store = ctx.properties.get("__session_store") as SessionStore;
+  const store = ctx.properties.get(SESSION_STORE_KEY) as SessionStore;
   if (store) {
     store.save(session);
   }
 }
 
 export async function refreshSessionData(ctx: RequestContext) {
-  const store = ctx.properties.get("__session_store") as SessionStore;
+  const store = ctx.properties.get(SESSION_STORE_KEY) as SessionStore;
   const session = ctx.properties.get(SESSION_KEY) as Session;
   ctx.properties.set(
     SESSION_KEY,
@@ -290,15 +287,6 @@ export function clearSessionData(ctx: RequestContext) {
 export function sessionAuthentication() {
   return defineMiddleware(
     async (ctx) => {
-      const SessionMiddlewareIndex = ctx.appContext.middlewares.findIndex(
-        (it) => it instanceof SessionMiddleware,
-      );
-      if (SessionMiddlewareIndex === -1) {
-        throw new Error(
-          "Authentication middleware cannot be used without using session middleware first.",
-        );
-      }
-
       const AUTHENTICATION = "__authentication";
       const principalData = getSessionData<Principal>(
         ctx.parent,
@@ -344,7 +332,19 @@ export function sessionAuthentication() {
       }
       return response;
     },
-    { name: "session-authentication-middleware" },
+    {
+      name: "session-authentication-middleware",
+      onAppStart(appContext) {
+        const SessionMiddlewareIndex = appContext.middlewares.findIndex(
+          (it) => it instanceof SessionMiddleware,
+        );
+        if (SessionMiddlewareIndex === -1) {
+          throw new Error(
+            "Authentication middleware cannot be used without using session middleware first.",
+          );
+        }
+      },
+    },
   );
 }
 
