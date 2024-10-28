@@ -1,4 +1,3 @@
-import { Middleware } from "@fresh-bun/lib/middleware";
 import type { RequestContext } from "@fresh-bun/lib/request-context";
 import cookieHelper, { type SerializeOptions } from "cookie";
 
@@ -11,6 +10,7 @@ export interface Cookie {
 export class CookieJar {
   #incomingCookies: Cookie[] = [];
   #outGoingCookies: Cookie[] = [];
+
   constructor(ctx?: RequestContext) {
     if (ctx) {
       const clientCookieHeader = ctx.request.headers.get("Cookie");
@@ -20,6 +20,7 @@ export class CookieJar {
       }
     }
   }
+
   static parse(cookieHeader: string) {
     const parsedCookies = cookieHelper.parse(cookieHeader);
     const cookies: Cookie[] = [];
@@ -33,6 +34,7 @@ export class CookieJar {
     }
     return cookies;
   }
+
   get length() {
     return this.#outGoingCookies.length;
   }
@@ -40,9 +42,11 @@ export class CookieJar {
   getIncomming(name: string) {
     return this.#incomingCookies.filter((it) => it.name === name);
   }
+
   getFirstIncomming(name: string) {
     return this.#incomingCookies.filter((it) => it.name === name).at(0);
   }
+
   getLastIncomming(name: string) {
     return this.#incomingCookies.filter((it) => it.name === name).at(-0);
   }
@@ -50,21 +54,26 @@ export class CookieJar {
   getOutGoing(name: string): Cookie[] {
     return this.#outGoingCookies.filter((it) => it.name === name);
   }
+
   getFirstOutgoing(name: string): Cookie | undefined {
     return this.#outGoingCookies.filter((it) => it.name === name).at(0);
   }
+
   getLastOutgoing(name: string): Cookie | undefined {
     return this.#outGoingCookies.filter((it) => it.name === name).at(-1);
   }
+
   appendOutgoing(cookie: Cookie) {
     this.#outGoingCookies.push(cookie);
   }
+
   setOutgoing(cookie: Cookie) {
     this.#outGoingCookies = this.#outGoingCookies.filter(
       (it) => it.name !== cookie.name,
     );
     this.appendOutgoing(cookie);
   }
+
   remove(name: string) {
     this.#outGoingCookies = this.#outGoingCookies.filter(
       (it) => it.name !== name,
@@ -79,6 +88,7 @@ export class CookieJar {
       },
     });
   }
+
   serialize() {
     const serializedCookies = this.#outGoingCookies.map((x) =>
       cookieHelper.serialize(x.name, x.value, x.options),
@@ -178,16 +188,3 @@ export function sendCookie(ctx: RequestContext, response: Response) {
   }
   return response;
 }
-
-export class CookieMiddlware extends Middleware {}
-export const cookie = () => {
-  return new CookieMiddlware({
-    handlerFn: async (ctx) => {
-      const cookieJar = new CookieJar(ctx.parent);
-      setCookieJar(ctx.parent, cookieJar);
-      const response = await ctx.consumeNext();
-      return mergeCookies(cookieJar, response);
-    },
-    name: "cookie-middleware",
-  });
-};

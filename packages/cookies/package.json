@@ -3,13 +3,15 @@
   "module": "index.ts",
   "type": "module",
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/set-cookie-parser": "^2.4.10"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "@fresh-bun/lib": "workspace:*",
     "cookie": "^1.0.1",
-    "@fresh-bun/lib": "workspace:*"
+    "set-cookie-parser": "^2.7.1"
   }
 }

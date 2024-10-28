@@ -47,21 +47,6 @@ export function setCookie(
   cookieJar.setOutgoing({ name, value, options });
 }
 
-export function appendCookie(
-  ctx: RequestContext,
-  name: string,
-  value: string,
-  options?: SerializeOptions,
-) {
-  let cookieJar = getCookieJar(ctx);
-  if (!cookieJar) {
-    cookieJar = new CookieJar();
-    setCookieJar(ctx, cookieJar);
-  }
-
-  cookieJar.appendOutgoing({ name, value, options });
-}
-
 export function removeCookie(ctx: RequestContext, name: string) {
   let cookieJar = getCookieJar(ctx);
   if (!cookieJar) {
@@ -72,7 +57,10 @@ export function removeCookie(ctx: RequestContext, name: string) {
   cookieJar.remove(name);
 }
 
-function mergeCookies(cookieJar: CookieJar, response: Response) {
+function mergeCookies(
+  cookieJar: CookieJar | null | undefined,
+  response: Response,
+) {
   if (cookieJar) {
     const headers = response.headers;
 
@@ -87,12 +75,27 @@ function mergeCookies(cookieJar: CookieJar, response: Response) {
   return response;
 }
 
+async function extractCookies(
+  cookieJar: CookieJar | null | undefined,
+  response: Response,
+) {
+  if (cookieJar) {
+    const headers = response.headers;
+
+    const setCookies = headers.getSetCookie();
+    if (setCookies.length > 0) {
+      const setCookieParser = (await import("set-cookie-parser")).default;
+      const cookies = setCookieParser.parse(response.headers.getSetCookie());
+      for (const cookie of cookies) {
+        cookieJar.setOutgoing(cookie);
+      }
+    }
+  }
+}
+
 export function sendCookie(ctx: RequestContext, response: Response) {
   const cookieJar = getCookieJar(ctx);
-  if (cookieJar) {
-    return mergeCookies(cookieJar, response);
-  }
-  return response;
+  return mergeCookies(cookieJar, response);
 }
 
 export class CookieMiddlware extends Middleware {}
@@ -101,8 +104,14 @@ export const cookie = () => {
     handlerFn: async (ctx) => {
       const cookieJar = new CookieJar(ctx.parent);
       setCookieJar(ctx.parent, cookieJar);
+      ctx.parent.addEventListener(
+        "forwardedRequestCompleted",
+        async (response) => {
+          await extractCookies(cookieJar, response);
+        },
+      );
       const response = await ctx.consumeNext();
-      return mergeCookies(cookieJar, response);
+      return sendCookie(ctx.parent, response);
     },
     name: "cookie-middleware",
   });
