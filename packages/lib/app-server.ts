@@ -9,6 +9,7 @@ import {
   MiddlewarePipeline,
 } from "./middleware";
 import { RequestContext } from "./request-context";
+import { SafeHttpError } from "./safe-http-errors";
 
 export class AppServer {
   constructor(private readonly rootDir: string = Path.dirname(Bun.main)) {}
@@ -83,6 +84,9 @@ export class AppServer {
         } catch (e) {
           if (appContext.errorHandler) {
             return await appContext.errorHandler.handle(middleWareCtx);
+          }
+          if (e instanceof SafeHttpError) {
+            return Response.json({ message: e.message }, { status: e.status });
           }
           throw e;
         }
