@@ -11,7 +11,6 @@ import { renderToStringAsync } from "preact-render-to-string";
 import {
   type Guard,
   RequestHandlerProcessorPipeline,
-  type RouteHandler,
   RouteHandlerStep,
   type RouteModule,
   RouteStepRequestContext,
@@ -28,12 +27,6 @@ export type PageProps<T> = JSX.IntrinsicAttributes & {
   // validationResult: ValidationResult;
 };
 
-export class DefinedHandler<T> {
-  constructor(
-    public handlerFn: RouteHandler<T>,
-    public guard?: Guard<T>,
-  ) {}
-}
 export type PageFactory<T> = (props: T) => JSX.Element | Promise<JSX.Element>;
 
 class DefinedPages<T> {
@@ -95,7 +88,6 @@ const pageStepFactory = {
       if (page?.constructor?.name === "DefinedPages") {
         const pg = page as DefinedPages<T>;
         if (pg.guard) {
-          pg.guard(ctx);
           return pg.guard(ctx);
         }
       }

@@ -2,8 +2,8 @@ import { describe, expect, test } from "bun:test";
 import { AppServer } from "@fresh-bun/lib";
 import { defineMiddleware } from "@fresh-bun/lib/middleware";
 import { fileSystemRouter } from "../../filesystem-router";
-import { useRoute } from "../../use-route";
 import { serveStatic } from "../../serve-static";
+import { useRoute } from "../../use-route";
 
 describe("serve-static", () => {
   test("serves from static folder", async () => {

@@ -68,7 +68,7 @@ export class FreshBun {
   static create({
     rootDir,
   }: Partial<FreshBunRuntimeConfig> & Pick<FreshBunRuntimeConfig, "rootDir">) {
-    Bun.env.ROOT_DIR = rootDir;
+    Bun.env.FRESH_BUN_ROOT_DIR = rootDir;
 
     return new FreshBun({
       rootDir,
