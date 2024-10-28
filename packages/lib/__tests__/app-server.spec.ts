@@ -1,4 +1,4 @@
-import { test, describe, expect } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { AppServer } from "../app-server";
 import { Logger } from "../logging";
 import { defineMiddleware } from "../middleware";

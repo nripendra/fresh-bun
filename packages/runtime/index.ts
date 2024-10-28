@@ -1,11 +1,11 @@
 import { parseArgs } from "node:util";
 import type { Middleware, MiddlewareFunction } from "@fresh-bun/lib/middleware";
+import type { RequestContext } from "@fresh-bun/lib/request-context";
 import { fileSystemRouter } from "@fresh-bun/routing/filesystem-router";
 import { pageHandler } from "@fresh-bun/routing/pages";
 import { serveStatic } from "@fresh-bun/routing/serve-static";
-import { AppServer } from "../lib/app-server";
 import type { WebSocketHandler } from "bun";
-import type { RequestContext } from "@fresh-bun/lib/request-context";
+import { AppServer } from "../lib/app-server";
 
 export type FreshBunRuntimeConfig = {
   rootDir: string;

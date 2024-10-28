@@ -1,6 +1,5 @@
 import type { Server } from "bun";
 import type { AppContext } from "./app-context";
-// import type { Router } from "./router";
 import type { Authentication } from "./authentication";
 import { ValidationResult } from "./validation";
 
@@ -14,27 +13,17 @@ export class RequestContext {
   public get request(): Request {
     return this._request;
   }
-  public set request(value: Request) {
-    this._request = value;
-  }
   public get appContext(): AppContext {
     return this._appContext;
-  }
-  public set appContext(value: AppContext) {
-    this._appContext = value;
   }
   public get properties(): Map<string, unknown> {
     return this._properties;
   }
-  public set properties(value: Map<string, unknown>) {
-    this._properties = value;
-  }
+
   constructor(
     private _properties: Map<string, unknown>,
     private _appContext: AppContext,
     private _request: Request,
-    // public router: Router,
-    // public route: MatchedRoute | null,
     private readonly _server: Server,
     private readonly _authentication: Authentication,
   ) {}
@@ -74,8 +63,14 @@ export class RequestContext {
   // setRestoreAuthentication(value: boolean) {
   //   this.#restoreAuthentication = value;
   // }
-  #eventHandlers: Map<"forwardedRequestCompleted", (() => void)[]> = new Map();
-  addEventListener(event: "forwardedRequestCompleted", handler: () => void) {
+  #eventHandlers: Map<
+    "forwardedRequestCompleted",
+    ((res: Response) => void)[]
+  > = new Map();
+  addEventListener(
+    event: "forwardedRequestCompleted",
+    handler: (res: Response) => void,
+  ) {
     if (!this.#eventHandlers.has(event)) {
       this.#eventHandlers.set(event, []);
     }
@@ -110,12 +105,16 @@ export class RequestContext {
     }
 
     const res = await fetch(requestUrl, init);
+    const resClone = res.clone();
     const handlers = this.#eventHandlers.get("forwardedRequestCompleted");
     if (handlers) {
       for (const handler of handlers) {
-        await Promise.resolve(handler());
+        await Promise.resolve(handler(resClone));
       }
     }
+    resClone.headers.forEach((val, key) => {
+      res.headers.set(key, val);
+    });
     return res;
   }
 

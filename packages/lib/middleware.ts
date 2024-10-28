@@ -44,7 +44,7 @@ export class MiddlewareContext {
 
   /**
    * Move forward to next middleware and wait for response.
-   * @returns 
+   * @returns
    */
   consumeNext(): Promise<Response> {
     return this.pipeline.consume(this);
