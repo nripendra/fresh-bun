@@ -6,7 +6,6 @@ import { isHyperMediaAjaxRequest } from "./hyper-media-helper";
 
 export interface LayoutProps {
   ctx: RequestContext;
-  hyperMediaBehavior?: "NoLayout" | "Layout";
   /**
    * A handler can specify the layout it wants to use. By default _layout.tsx is used if layout is not speficied, or set to "default".
    * Set layout to null if you want to supress the layout
@@ -24,12 +23,6 @@ export interface LayoutProps {
 
 export default function LayoutProvider(props: LayoutProps) {
   if (props.layout !== null) {
-    if (isHyperMediaAjaxRequest(props.ctx)) {
-      if (props.hyperMediaBehavior === "NoLayout") {
-        props.layout = null;
-      }
-    }
-
     const Page = lazy(async () => {
       let module: {
         default: (props: LayoutProps) => JSX.Element;

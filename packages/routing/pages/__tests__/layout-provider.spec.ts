@@ -133,25 +133,6 @@ describe("pages-handler", () => {
 
         expect(await responseHyperMedia.text()).toBe("<h1>Hello world</h1>");
       });
-      test("when hypermediaBehaviour is defined in layout but is overridden by the page", async () => {
-        const app = new AppServer(import.meta.dir);
-        using server = app
-          .use(fileSystemRouter("./routes", pageHandler()))
-          .listen(0);
-        const response = await fetch(`${server.url}layout/nested3`);
-
-        expect(await response.text()).toBe(
-          '<!DOCTYPE html><html lang="en"><head><title>Hello</title></head><body><div><h1>Header</h1><h1>Hello world</h1><footer>Footer</footer></div></body></html>',
-        );
-
-        const responseHyperMedia = await fetch(`${server.url}layout/nested3`, {
-          headers: {
-            "X-AJAX-REQUEST": "true",
-          },
-        });
-
-        expect(await responseHyperMedia.text()).toBe("<h1>Hello world</h1>");
-      });
     });
   });
 });
