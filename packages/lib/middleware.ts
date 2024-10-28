@@ -20,37 +20,18 @@ export class MiddlewareContext {
   constructor(
     public readonly parent: RequestContext,
     private pipeline: MiddlewarePipeline,
-  ) {
-    // super(
-    //   parent.properties,
-    //   parent.appContext,
-    //   parent.request,
-    //   // parent.router,
-    //   // parent.route,
-    //   parent.server,
-    //   parent.authentication
-    // );
-  }
+  ) {}
 
   get properties() {
     return this.parent.properties;
-  }
-  set properties(value) {
-    this.parent.properties = value;
   }
 
   get appContext() {
     return this.parent.appContext;
   }
-  set appContext(value) {
-    this.parent.appContext = value;
-  }
 
   get request() {
     return this.parent.request;
-  }
-  set request(value) {
-    this.parent.request = value;
   }
 
   get server() {
@@ -61,9 +42,17 @@ export class MiddlewareContext {
     return this.parent.authentication;
   }
 
+  /**
+   * Move forward to next middleware and wait for response.
+   * @returns 
+   */
   consumeNext(): Promise<Response> {
     return this.pipeline.consume(this);
   }
+  /**
+   * Move forward to next middleware without waiting for the response from it.
+   * @returns
+   */
   moveForward(): Promise<Response> {
     return this.pipeline.moveForward(this);
   }
@@ -135,33 +124,6 @@ export class MiddlewarePipeline {
   }
 }
 
-// export abstract class HandlerMiddleware extends Middleware {
-//   constructor(
-//     public readonly conventions: Conventions,
-//     // public readonly routesFolder: string,
-//     // public readonly layoutFolder: string,
-//     name: string
-//   ) {
-//     super({ handlerFn: async () => notFoundResponse, name });
-//   }
-//   abstract handle(ctx: RequestContext): Promise<Response>;
-// }
-
-// type HandlerFunction = (ctx: RequestContext) => Promise<Response>;
-// export function defineFileSystemRequestHandler<T extends Conventions>(
-//   fn: HandlerFunction,
-//   name: string,
-//   conventions: T
-//   // routesFolder: string,
-//   // defaultLayout: string
-// ) {
-//   return new (class extends HandlerMiddleware {
-//     handle(ctx: MiddlewareContext) {
-//       return fn(ctx.parent);
-//     }
-//   })(conventions, name);
-// }
-
 export interface DefineMiddlewareConfig {
   readonly name: string;
   onAppStart?: MiddlewareAppStartCallback;
@@ -172,33 +134,6 @@ export function defineMiddleware(
 ) {
   return new Middleware({ handlerFn, ...config });
 }
-
-// export class ServeStaticMiddleware extends Middleware {
-//   constructor(
-//     handlerFn: MiddlewareFunction,
-//     name: string,
-//     public readonly folder: string
-//   ) {
-//     super({ handlerFn, name });
-//   }
-// }
-
-// export function serveStatic(folder: string) {
-//   return new ServeStaticMiddleware(
-//     async (ctx) => {
-//       // if (ctx.route) {
-//       //   for (const staticFolder of ctx.appContext.staticFolders) {
-//       //     if (ctx.route.filePath.startsWith(staticFolder)) {
-//       //       return new Response(Bun.file(ctx.route.filePath));
-//       //     }
-//       //   }
-//       // }
-//       return ctx.moveForward();
-//     },
-//     "serveStatic",
-//     folder
-//   );
-// }
 
 type PathMatcher = (url: URL) => boolean;
 export function upgradeWebsocket<T>(

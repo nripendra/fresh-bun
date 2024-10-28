@@ -4,6 +4,8 @@ import { fileSystemRouter } from "@fresh-bun/routing/filesystem-router";
 import { pageHandler } from "@fresh-bun/routing/pages";
 import { serveStatic } from "@fresh-bun/routing/serve-static";
 import { AppServer } from "../lib/app-server";
+import type { WebSocketHandler } from "bun";
+import type { RequestContext } from "@fresh-bun/lib/request-context";
 
 export type FreshBunRuntimeConfig = {
   rootDir: string;
@@ -38,7 +40,12 @@ export class FreshBun {
     this.#appServer.use(middleware, name);
     return this;
   }
-
+  websocket<WebSocketDataType extends { ctx: RequestContext }>(
+    websocket: WebSocketHandler<WebSocketDataType>,
+  ) {
+    this.#appServer.websocket(websocket);
+    return this;
+  }
   async serve(port = 3000) {
     this.#appServer.use(serveStatic("./public"));
     if (values.plugin) {

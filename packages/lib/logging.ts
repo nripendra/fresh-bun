@@ -24,8 +24,14 @@ export namespace Logger {
   export function setLogLevel(logLevel: LogLevel) {
     _logLevel = logLevel;
   }
+  export function getLogLevel() {
+    return _logLevel;
+  }
   export function setLogExporter(logExporter: Logger) {
     _logExporter = logExporter;
+  }
+  export function getLogExporter() {
+    return _logExporter;
   }
   let spanDepth = 0;
   class SpanScope implements Span {
