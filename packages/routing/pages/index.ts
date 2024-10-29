@@ -24,7 +24,6 @@ import { useRoute } from "../use-route";
 export type PageProps<T> = JSX.IntrinsicAttributes & {
   ctx: RequestContext;
   data: T;
-  // validationResult: ValidationResult;
 };
 
 export type PageFactory<T> = (props: T) => JSX.Element | Promise<JSX.Element>;
@@ -102,17 +101,10 @@ const pageStepFactory = {
       const pageFn = getPageFn(module);
       if (pageFn) {
         const data = ctx.handlerResult as T;
-        // let validationResult: ValidationResult = (
-        //   (ctx.handlerResult as any) || {}
-        // ).validationResult;
-        // if (!(validationResult instanceof ValidationResult)) {
-        //   validationResult = new ValidationResult();
-        // }
         return renderJsx(
           pageFn({
             ctx: ctx.parent,
             data,
-            // validationResult,
           }),
         );
       }
