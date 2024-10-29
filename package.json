@@ -4,8 +4,9 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "lint": "bunx @biomejs/biome check --write ./packages",
-    "format": "bunx @biomejs/biome format --write ./packages"
+    "lint": "bunx @biomejs/biome check ./packages",
+    "format": "bunx @biomejs/biome format --write ./packages",
+    "lint:fix": "bunx @biomejs/biome check --write ./packages"
   },
   "workspaces": ["packages/*"],
   "devDependencies": {
