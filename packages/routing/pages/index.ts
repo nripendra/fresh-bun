@@ -144,7 +144,7 @@ export const pageHandler = ({
     },
     {
       name: "pages",
-      async onAppStart(ctx, server) {
+      onAppStart(ctx, server) {
         ctx.conventions.push(new Convention("layoutFile", defaultLayoutFile));
         ctx.conventions.push(new Convention("errorPage", errorPageFile));
         ctx.errorHandler = errorPage();

@@ -25,7 +25,7 @@ export const fileSystemRouter = (basePath: string, middleware: Middleware) => {
     },
     {
       name: "FileSystemRouter",
-      async onAppStart(ctx, server) {
+      onAppStart(ctx, server) {
         ctx.conventions.push(new Convention("routesBasePath", basePath));
         middleware.config.onAppStart?.(ctx, server);
       },

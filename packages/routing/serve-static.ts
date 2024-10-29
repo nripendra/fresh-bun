@@ -95,7 +95,7 @@ export const serveStatic = (
     },
     {
       name: "serve-static",
-      async onAppStart(ctx, _server) {
+      onAppStart(ctx, _server) {
         ctx.staticFolders.push(folder);
       },
     },

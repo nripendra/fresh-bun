@@ -26,7 +26,7 @@ export function island<
   T extends ComponentType<{ children: ComponentChildren }>,
 >(importFn: () => Promise<{ default: T }>): T {
   const modulePath = Path.join("/", extractModulePath(importFn.toString()));
-  console.log({ modulePath })
+  console.log({ modulePath });
   const ActualComponent = lazy(importFn) as ComponentType<{
     children: ComponentChildren;
   }>;

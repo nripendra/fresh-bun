@@ -62,7 +62,7 @@ export type MiddlewareFunction = (ctx: MiddlewareContext) => Promise<Response>;
 export type MiddlewareAppStartCallback = (
   appCtx: AppContext,
   server: Server,
-) => Promise<void>;
+) => void;
 
 export interface MiddlewareConfig {
   readonly name: string;

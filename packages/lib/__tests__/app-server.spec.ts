@@ -93,7 +93,7 @@ describe("App Server", () => {
       },
       {
         name: "app-start-middleware",
-        async onAppStart(app, server) {
+        onAppStart(app, server) {
           app.errorHandler = defineMiddleware(
             async (ctx) => {
               return new Response("Handled error", { status: 400 });
