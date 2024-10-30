@@ -140,27 +140,6 @@ export function session(config?: SessionMiddlewareConfig) {
     handlerFn: async (ctx) => {
       return Logger.startSpan("SessionMiddleware").do(async (logger) => {
         logger.debug("Start - ", ctx.request.url);
-        // const CookieMiddlwareIndex = ctx.appContext.middlewares.findIndex(
-        //   (it) => it instanceof CookieMiddlware,
-        // );
-        // if (CookieMiddlwareIndex === -1) {
-        //   logger.debug("Incorrect setup. No cookie middleware found");
-        //   throw new Error(
-        //     "Session middleware cannot be used without using cookie middleware first.",
-        //   );
-        // }
-        // const SelfIndex = ctx.appContext.middlewares.findIndex(
-        //   (it) => it instanceof SessionMiddleware,
-        // );
-        // if (SelfIndex <= CookieMiddlwareIndex) {
-        //   logger.debug(
-        //     "Incorrect setup. Cookie middleware is confiured after SessionMiddleware",
-        //   );
-        //   throw new Error(
-        //     "Cookie middleware needs to be setup before the session middleware.",
-        //   );
-        // }
-
         ctx.properties.set("__session_cookie_name", cookieName);
         ctx.properties.set(SESSION_STORE_KEY, store);
 

@@ -75,6 +75,35 @@ describe("session-middleware", () => {
     expect(failed).toBe(true);
   });
 
+  test("when session middleware is used before cookie middleware, starting up server fails.", async () => {
+    const app = new AppServer(import.meta.dir);
+
+    app
+      .use(
+        session({
+          store: inMemorySessionStore,
+        }),
+      )
+      .use(cookie())
+      .use(async (ctx) => {
+        const url = new URL(ctx.request.url);
+        if (url.pathname === "/set-session") {
+          setSessionData(ctx.parent, "sessionData", "Hello");
+          return new Response("HELLO WORLD");
+        }
+        const data = getSessionData<string>(ctx.parent, "sessionData");
+        return new Response(data);
+      });
+
+    let failed = false;
+    try {
+      using _server = app.listen(0);
+    } catch (e) {
+      failed = true;
+    }
+    expect(failed).toBe(true);
+  });
+
   test("enabling session middleware", async () => {
     const app = new AppServer(import.meta.dir);
     using server = app
