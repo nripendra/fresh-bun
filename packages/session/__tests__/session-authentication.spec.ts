@@ -1,10 +1,31 @@
-import { describe, expect, test } from "bun:test";
+import { beforeEach, describe, expect, test } from "bun:test";
+import Path from "node:path";
 import { cookie } from "@fresh-bun/cookies";
 import { AppServer } from "@fresh-bun/lib";
 import { Principal } from "@fresh-bun/lib/authentication";
 import { session, sessionAuthentication } from "..";
 
 describe("session authentication", () => {
+  beforeEach(async () => {
+    const freshBunPath = Path.join(import.meta.dir, ".fresh-bun");
+    await Bun.$`rm -rf ${freshBunPath}`;
+  });
+  test("when session middleware is not set, setting sessionAuthentication will cause the server startup to fail.", async () => {
+    const app = new AppServer(import.meta.dir);
+
+    app.use(sessionAuthentication()).use(async (ctx) => {
+      return new Response("hello world");
+    });
+
+    let failed = false;
+    try {
+      using _server = app.listen(0);
+    } catch (e) {
+      failed = true;
+    }
+    expect(failed).toBe(true);
+  });
+
   test("enabling session authentication", async () => {
     const app = new AppServer(import.meta.dir);
     using server = app

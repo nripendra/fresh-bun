@@ -1,4 +1,3 @@
-import * as Path from "node:path";
 import type { WebSocketHandler } from "bun";
 import { AppContext } from "./app-context";
 import { AnonymousPrincipal, Authentication } from "./authentication";
@@ -12,7 +11,9 @@ import { RequestContext } from "./request-context";
 import { SafeHttpError } from "./safe-http-errors";
 
 export class AppServer {
-  constructor(private readonly rootDir: string = Path.dirname(Bun.main)) {}
+  constructor(private readonly rootDir: string) {
+    Bun.env.FRESH_BUN_ROOT_DIR = rootDir;
+  }
   #middlewares: Middleware[] = [];
   #websocketHandler?: WebSocketHandler<unknown>;
   use(middleware: MiddlewareFunction, name?: string): AppServer;

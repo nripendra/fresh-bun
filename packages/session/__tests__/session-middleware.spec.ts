@@ -1,15 +1,23 @@
-import { describe, expect, test } from "bun:test";
+import { beforeEach, describe, expect, test } from "bun:test";
+import Path from "node:path";
 import { cookie } from "@fresh-bun/cookies";
 import { AppServer } from "@fresh-bun/lib";
 import {
   type Session,
   type SessionStore,
+  clearSessionData,
+  getSessionCookieName,
   getSessionData,
+  getSessionId,
   session,
   setSessionData,
 } from "..";
 
 describe("session-middleware", () => {
+  beforeEach(async () => {
+    const freshBunPath = Path.join(import.meta.dir, ".fresh-bun");
+    await Bun.$`rm -rf ${freshBunPath}`;
+  });
   const sessions = new Map<string, Session>();
   const inMemorySessionStore: SessionStore = {
     createSession: async (
@@ -133,5 +141,71 @@ describe("session-middleware", () => {
     });
 
     expect(await response.text()).toBe("Hello");
+  });
+
+  test("session helper functions", async () => {
+    const app = new AppServer(import.meta.dir);
+    using server = app
+      .use(cookie())
+      .use(
+        session({
+          store: inMemorySessionStore,
+        }),
+      )
+      .use(async (ctx) => {
+        expect(getSessionCookieName(ctx.parent)).toBe("FreshBunSession");
+        const url = new URL(ctx.request.url);
+        if (url.pathname === "/set-session") {
+          setSessionData(ctx.parent, "sessionData", "Hello");
+          return new Response("HELLO WORLD");
+        }
+        const data = getSessionData<string>(ctx.parent, "sessionData");
+        expect(sessions.get(getSessionId(ctx.parent))?.sessionData).toBe(data);
+        return new Response(data);
+      })
+      .listen(0);
+    const res = await fetch(`${server.url}set-session`);
+    // session id is tracked through cookie.
+    const cookies = res.headers.getSetCookie();
+    const response = await fetch(`${server.url}`, {
+      headers: {
+        Cookie: cookies[0].split(";")[0],
+      },
+    });
+
+    expect(await response.text()).toBe("Hello");
+  });
+
+  test("session helper functions", async () => {
+    const app = new AppServer(import.meta.dir);
+    using server = app
+      .use(cookie())
+      .use(
+        session({
+          store: inMemorySessionStore,
+        }),
+      )
+      .use(async (ctx) => {
+        const url = new URL(ctx.request.url);
+        if (url.pathname === "/set-session") {
+          setSessionData(ctx.parent, "sessionData", "Hello");
+          return new Response("HELLO WORLD");
+        }
+        clearSessionData(ctx.parent);
+        const data = getSessionData<string>(ctx.parent, "sessionData");
+        expect(data).toBeUndefined();
+        return new Response(data ?? "No data");
+      })
+      .listen(0);
+    const res = await fetch(`${server.url}set-session`);
+    // session id is tracked through cookie.
+    const cookies = res.headers.getSetCookie();
+    const response = await fetch(`${server.url}`, {
+      headers: {
+        Cookie: cookies[0].split(";")[0],
+      },
+    });
+
+    expect(await response.text()).toBe("No data");
   });
 });

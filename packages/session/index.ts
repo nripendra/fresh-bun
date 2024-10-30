@@ -120,7 +120,10 @@ export function session(config?: SessionMiddlewareConfig) {
     config.store ??
     sqliteSessionStore(
       (() => {
-        const defaultSessionPath = "./.fresh-bun/sessions";
+        const defaultSessionPath = Path.join(
+          Bun.env.FRESH_BUN_ROOT_DIR ?? "./",
+          ".fresh-bun/sessions",
+        );
         if (!FileSystem.existsSync(defaultSessionPath)) {
           FileSystem.mkdirSync(defaultSessionPath, { recursive: true });
         }
@@ -284,15 +287,6 @@ export function clearSessionData(ctx: RequestContext) {
 export function sessionAuthentication() {
   return defineMiddleware(
     async (ctx) => {
-      const SessionMiddlewareIndex = ctx.appContext.middlewares.findIndex(
-        (it) => it instanceof SessionMiddleware,
-      );
-      if (SessionMiddlewareIndex === -1) {
-        throw new Error(
-          "Authentication middleware cannot be used without using session middleware first.",
-        );
-      }
-
       const AUTHENTICATION = "__authentication";
       const principalData = getSessionData<Principal>(
         ctx.parent,
@@ -338,7 +332,19 @@ export function sessionAuthentication() {
       }
       return response;
     },
-    { name: "session-authentication-middleware" },
+    {
+      name: "session-authentication-middleware",
+      onAppStart(appContext) {
+        const SessionMiddlewareIndex = appContext.middlewares.findIndex(
+          (it) => it instanceof SessionMiddleware,
+        );
+        if (SessionMiddlewareIndex === -1) {
+          throw new Error(
+            "Authentication middleware cannot be used without using session middleware first.",
+          );
+        }
+      },
+    },
   );
 }
 
