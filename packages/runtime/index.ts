@@ -65,9 +65,7 @@ export class FreshBun {
     }
   }
 
-  static create({
-    rootDir,
-  }: Partial<FreshBunRuntimeConfig> & Pick<FreshBunRuntimeConfig, "rootDir">) {
+  static create({ rootDir }: FreshBunRuntimeConfig) {
     return new FreshBun({
       rootDir,
     });
