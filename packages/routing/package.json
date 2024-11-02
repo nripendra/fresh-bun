@@ -1,4 +1,5 @@
 {
+  "version": "0.1.0",
   "name": "@fresh-bun/routing",
   "module": "index.ts",
   "type": "module",
