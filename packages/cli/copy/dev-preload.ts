@@ -8,11 +8,14 @@ Bun.plugin({
   name: "client-manifest",
   async setup(builder) {
     builder.module("client-manifest", async () => {
+      const contents = await Bun.file(
+        Path.resolve(".fresh-bun", "manifest.json"),
+      ).text();
       return {
-        contents: await Bun.file(
-          Path.resolve(".fresh-bun", "manifest.js"),
-        ).text(),
-        loader: "js",
+        exports: {
+          default: JSON.parse(contents)
+        },
+        loader: "object",
       };
     });
   },
@@ -81,14 +84,10 @@ export async function buildBrowserArtifactsAndManifest(
   }
 
   let oldManifest = {} as Record<string, string>;
-  const manifestFile = Path.join(rootDir, ".fresh-bun", "/manifest.js");
+  const manifestFile = Path.join(rootDir, ".fresh-bun", "/manifest.json");
   if (await Bun.file(manifestFile).exists()) {
     const existingManifestContent = await Bun.file(manifestFile).text();
-    oldManifest = JSON.parse(
-      existingManifestContent
-        .replace("const manifest = ", "")
-        .replace(";export default manifest;", ""),
-    );
+    oldManifest = JSON.parse(existingManifestContent);
   }
 
   const manifest = {} as Record<string, string>;
@@ -159,12 +158,8 @@ export async function buildBrowserArtifactsAndManifest(
   }
 
   await Bun.write(
-    Path.join(rootDir, ".fresh-bun", "/manifest.js"),
-    `const manifest = ${JSON.stringify(
-      manifest,
-      null,
-      4,
-    )};export default manifest;`,
+    Path.join(rootDir, ".fresh-bun", "/manifest.json"),
+    JSON.stringify(manifest, null, 4),
   );
 }
 

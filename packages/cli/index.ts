@@ -26,7 +26,7 @@ export async function build(config: FreshBunBuildConfig) {
     async setup(builder) {
       builder.onResolve({ filter: /client-manifest/ }, (args) => {
         return {
-          path: Path.resolve(distFolder, "manifest.js"),
+          path: Path.resolve(distFolder, "manifest.json"),
         };
       });
     },
@@ -134,12 +134,8 @@ export async function build(config: FreshBunBuildConfig) {
   }
 
   await Bun.write(
-    Path.join(rootDir, distFolder, "/manifest.js"),
-    `const manifest = ${JSON.stringify(
-      manifest,
-      null,
-      4,
-    )};export default manifest;`,
+    Path.join(rootDir, distFolder, "/manifest.json"),
+    JSON.stringify(manifest, null, 4),
   );
 
   // build for server
