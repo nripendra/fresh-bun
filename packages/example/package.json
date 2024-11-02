@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "fresh-bun dev .",
+    "dev:clean": "bun clean-dev.ts && fresh-bun dev .",
     "build": "NODE_ENV=production fresh-bun build .",
     "start": "bun run build && cd dist && NODE_ENV=production bun run index.js",
     "lint": "bunx @biomejs/biome check --write .",
