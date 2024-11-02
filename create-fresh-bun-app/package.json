@@ -1,0 +1,26 @@
+{
+  "module": "index.ts",
+  "type": "module",
+  "scripts": {
+    "dev": "fresh-bun dev .",
+    "build": "NODE_ENV=production fresh-bun build .",
+    "start": "bun run build && cd dist && NODE_ENV=production bun run index.js",
+    "lint": "bunx @biomejs/biome check --write .",
+    "format": "bunx @biomejs/biome format --write ."
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "tailwind": "^4.0.0",
+    "@fresh-bun/cli": "latest",
+    "@biomejs/biome": "1.9.4"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "arktype": "^2.0.0-rc.17",
+    "@fresh-bun/lib": "latest",
+    "@fresh-bun/routing": "latest",
+    "@fresh-bun/runtime": "latest"
+  }
+}
