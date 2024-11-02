@@ -3,6 +3,7 @@
   "module": "index.ts",
   "type": "module",
   "private": true,
+  "version": "0.1.0",
   "scripts": {
     "lint": "bunx @biomejs/biome check ./packages",
     "format": "bunx @biomejs/biome format --write ./packages",
