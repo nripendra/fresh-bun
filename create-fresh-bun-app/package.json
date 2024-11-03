@@ -18,7 +18,6 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "arktype": "^2.0.0-rc.17",
     "@fresh-bun/lib": "latest",
     "@fresh-bun/routing": "latest",
     "@fresh-bun/runtime": "latest"
