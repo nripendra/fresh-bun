@@ -24,10 +24,6 @@ export default function (props: { children?: ComponentChildren }) {
           +
         </button>
       </div>
-      <div>
-        SLOT 123:
-        <div>{props.children}</div>
-      </div>
     </div>
   );
 }
