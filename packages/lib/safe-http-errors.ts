@@ -2,7 +2,7 @@
  * SafeHttpError here means the message of these errors should not contain anything that shouldn't be revealed to end-user.
  * Don't use any derived class of SafeHttpError if the message may contain some details that shouldn't be revealed to end-user.
  */
-export abstract class SafeHttpError extends Error {
+export class SafeHttpError extends Error {
   constructor(
     public readonly status: number,
     public readonly message: string,

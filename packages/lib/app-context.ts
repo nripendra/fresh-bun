@@ -8,7 +8,6 @@ export class AppContext {
     public readonly staticFolders: string[],
     public readonly middlewares: Middleware[],
     public readonly conventions: Convention[],
-    public errorHandler?: Middleware,
     private _port = 3000,
   ) {}
 

@@ -34,8 +34,9 @@ export default defineLayout(({ ctx, head, children }) => {
         <link rel="prefetch" href="/login" as={"document"} />
         <script src="https://unpkg.com/htmx.org@1.9.5" />
         <script src="https://unpkg.com/htmx-ext-disable-element@2.0.0/disable-element.js" />
+        <script src="https://unpkg.com/htmx-ext-response-targets@2.0.0/response-targets.js" />
       </head>
-      <body className={"flex flex-col"}>
+      <body className={"flex flex-col"} hx-ext="response-targets">
         <header className={"flex-none h-24"}>
           <Navbar isLoggedIn={isLoggedIn} loginName={loginName} />
         </header>

@@ -41,6 +41,18 @@ export default definePage<ErrorData>(({ ctx, data }) => {
               <div className={"border border-gray-500 mt-6 p-5"}>Redacted</div>
             )}
           </div>
+
+          {ctx.server.development && !!(error as { data: string }).data ? (
+            <div className={"mt-6"}>
+              <strong>More Data</strong>
+              <div className={"border border-gray-500 mt-6 p-5"}>
+                <code>
+                  <pre>{(error as { data: string }).data}</pre>
+                </code>
+              </div>
+            </div>
+          ) : null}
+
           <div className={"mt-10"}>
             If this error is not expected and continues to perisist, contact us
             with following error-id:{" "}

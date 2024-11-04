@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { AppServer } from "@fresh-bun/lib";
-import { pageHandler } from "..";
+import { errorPage, pageHandler } from "..";
 import { fileSystemRouter } from "../../filesystem-router";
 
 describe("pages-handler", () => {
@@ -131,6 +131,7 @@ describe("pages-handler", () => {
   test("_error page gets rendered when error is thrown", async () => {
     const app = new AppServer(import.meta.dir);
     using server = app
+      .use(errorPage())
       .use(fileSystemRouter("./routes", pageHandler()))
       .listen(0);
     const response = await fetch(`${server.url}error`);

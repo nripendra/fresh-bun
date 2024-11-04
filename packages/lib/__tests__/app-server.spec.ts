@@ -87,6 +87,7 @@ describe("App Server", () => {
   });
 
   test("App Server with defined middleware, onAppStart", async () => {
+    let onAppStart = false;
     const middleware = defineMiddleware(
       async (ctx) => {
         return ctx.consumeNext();
@@ -94,25 +95,19 @@ describe("App Server", () => {
       {
         name: "app-start-middleware",
         onAppStart(app, server) {
-          app.errorHandler = defineMiddleware(
-            async (ctx) => {
-              return new Response("Handled error", { status: 400 });
-            },
-            { name: "error-handler" },
-          );
+          onAppStart = true;
         },
       },
     );
 
     const sut = new AppServer(import.meta.dir);
     sut.use(middleware).use(async (ctx) => {
-      throw new Error("Some error");
+      return new Response("");
     });
 
     using server = sut.listen(0);
     const response = await fetch(server.url);
-    expect(await response.text()).toBe("Handled error");
-    expect(response.status).toBe(400);
+    expect(onAppStart).toBe(true);
   });
 
   test("Higher level middleware can send data to lower level middleware through properties", async () => {

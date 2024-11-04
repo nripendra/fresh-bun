@@ -15,7 +15,7 @@ export const POST = defineHandler(async (ctx) => {
   //   console.log("Early return");
   //   return result;
   // }
-  const response = await ctx.fetchJson<LoginResponse>("/api/login-post", {
+  const response = await ctx.fetchJson<LoginResponse>("/api/login", {
     method: "POST",
     body: JSON.stringify({
       username: formData.get("username"),
@@ -53,6 +53,7 @@ export default definePage<LoginResponse | undefined>(({ ctx, data }) => {
           className={"m-auto w-full sm:w-[25rem]"}
           hx-boost="true"
           hx-target="#main"
+          hx-target-error="#main"
           hx-swap="innerHTML"
           hx-ext="disable-element"
           hx-disable-element=".btn"

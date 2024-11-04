@@ -147,7 +147,6 @@ export const pageHandler = ({
       onAppStart(ctx, server) {
         ctx.conventions.push(new Convention("layoutFile", defaultLayoutFile));
         ctx.conventions.push(new Convention("errorPage", errorPageFile));
-        ctx.errorHandler = errorPage();
       },
     },
   );
@@ -166,6 +165,24 @@ export const errorPage = () =>
         try {
           return await ctx.consumeNext();
         } catch (e) {
+          if (ctx.request.headers.has("X-FRESH-BUN-INTERNAL")) {
+            console.log("ERROR IN FORWARDED REQUEST", e);
+            return new Response(
+              JSON.stringify({
+                message: (e as { message: string }).message,
+                stack: (e as { stack: string }).stack,
+                status: (e as { status?: number }).status ?? 500,
+              }),
+              {
+                status: 500,
+                headers: {
+                  "X-FRESH-BUN-INTERNAL": "true",
+                  "Content-Type": "application/json",
+                },
+              },
+            );
+          }
+
           const errorId = crypto.randomUUID();
           console.error(e, { errorId, ctx });
 
@@ -190,7 +207,7 @@ export const errorPage = () =>
 
           const pageFn = getPageFn(errorPageModule);
           if (pageFn) {
-            let status = 200;
+            let status = 500;
             if (e instanceof SafeHttpError) {
               status = e.status;
             }

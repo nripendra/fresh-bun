@@ -13,7 +13,7 @@ Bun.plugin({
       ).text();
       return {
         exports: {
-          default: JSON.parse(contents)
+          default: JSON.parse(contents),
         },
         loader: "object",
       };

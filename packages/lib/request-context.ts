@@ -1,6 +1,7 @@
 import type { Server } from "bun";
 import type { AppContext } from "./app-context";
 import type { Authentication } from "./authentication";
+import { SafeHttpError } from "./safe-http-errors";
 import { ValidationResult } from "./validation";
 
 export class RequestContext {
@@ -103,8 +104,15 @@ export class RequestContext {
     if (!init.credentials) {
       init.credentials = "include";
     }
+    init.headers.set("X-FRESH-BUN-INTERNAL", "true");
 
     const res = await fetch(requestUrl, init);
+    if (!res.ok) {
+      if (res.headers.has("X-FRESH-BUN-INTERNAL")) {
+        const errorBody = await res.json();
+        throw new SafeHttpError(errorBody.status, errorBody.message);
+      }
+    }
     const resClone = res.clone();
     const handlers = this.#eventHandlers.get("forwardedRequestCompleted");
     if (handlers) {

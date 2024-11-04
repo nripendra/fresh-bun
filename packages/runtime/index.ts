@@ -2,7 +2,7 @@ import { parseArgs } from "node:util";
 import type { Middleware, MiddlewareFunction } from "@fresh-bun/lib/middleware";
 import type { RequestContext } from "@fresh-bun/lib/request-context";
 import { fileSystemRouter } from "@fresh-bun/routing/filesystem-router";
-import { pageHandler } from "@fresh-bun/routing/pages";
+import { errorPage, pageHandler } from "@fresh-bun/routing/pages";
 import { serveStatic } from "@fresh-bun/routing/serve-static";
 import type { WebSocketHandler } from "bun";
 import { AppServer } from "../lib/app-server";
@@ -47,6 +47,7 @@ export class FreshBun {
     return this;
   }
   async serve(port = 3000) {
+    this.#appServer.use(errorPage());
     this.#appServer.use(serveStatic("./public"));
     if (values.plugin) {
       appPlugin = (await import(values.plugin)).default;

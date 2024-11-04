@@ -105,7 +105,9 @@ export class MiddlewarePipeline {
         }
         return response;
       }
-      throw new SafeHttpNotFoundError("No handler found");
+      throw new SafeHttpNotFoundError(
+        `No handler found ${ctx.parent.request.url}`,
+      );
     });
   }
 

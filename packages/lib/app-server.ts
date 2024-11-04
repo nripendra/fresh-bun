@@ -8,7 +8,6 @@ import {
   MiddlewarePipeline,
 } from "./middleware";
 import { RequestContext } from "./request-context";
-import { SafeHttpError } from "./safe-http-errors";
 
 export class AppServer {
   constructor(private readonly rootDir: string) {
@@ -57,7 +56,6 @@ export class AppServer {
       [], //this.#staticFolders,
       Object.freeze([...this.#middlewares]) as Middleware[],
       [], // conventions,
-      undefined,
       port,
     );
 
@@ -80,17 +78,7 @@ export class AppServer {
         const pipeLine = new MiddlewarePipeline([...pipelineMiddlewares]);
 
         const middleWareCtx = new MiddlewareContext(ctx, pipeLine);
-        try {
-          return await Promise.resolve(pipeLine.start(middleWareCtx));
-        } catch (e) {
-          if (appContext.errorHandler) {
-            return await appContext.errorHandler.handle(middleWareCtx);
-          }
-          if (e instanceof SafeHttpError) {
-            return Response.json({ message: e.message }, { status: e.status });
-          }
-          throw e;
-        }
+        return await Promise.resolve(pipeLine.start(middleWareCtx));
       },
       websocket: this.#websocketHandler,
     });
