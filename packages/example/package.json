@@ -7,7 +7,9 @@
     "dev:clean": "bun clean-dev.ts && fresh-bun dev .",
     "build": "NODE_ENV=production fresh-bun build .",
     "start": "bun run build && cd dist && NODE_ENV=production bun run index.js",
+    "lint:check": "bunx @biomejs/biome check .",
     "lint": "bunx @biomejs/biome check --write .",
+    "format:check": "bunx @biomejs/biome format .",
     "format": "bunx @biomejs/biome format --write ."
   },
   "devDependencies": {
