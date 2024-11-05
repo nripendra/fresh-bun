@@ -20,6 +20,8 @@ WIP. Go through example folder to get a glimpse of how things looks like from ap
 ### Directory structure:
 
 These are the folders that have special meaning to fresh-bun
+
+```bash
 |- .fresh-bun  - temporary runtime folder. Heavely used for dev environment. In production environment it is mainly
 |                used to store the session db if sqlite based session middleware is enbaled. And also stores the 
 |                manifest file that stores information about various client-side artifacts like client js, islands,
@@ -38,6 +40,7 @@ These are the folders that have special meaning to fresh-bun
 |
 |- styles      - Css files should go here.
 |- index.ts    - The entry point which starts the server.
+```
 
 ### Starting dev server
 
