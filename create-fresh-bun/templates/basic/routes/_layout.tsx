@@ -19,17 +19,19 @@ export default defineLayout(({ ctx, head, children }) => {
         <Script />
         <link href={"/favicon.ico"} rel={"icon"} type={"image/ico"} />
       </head>
-      <body className={"flex flex-col"}>
-        <header className={"flex-none h-24"}>Header</header>
-        <main id="main" className={"m-5 mt-3 grow"}>
-          {children}
-        </main>
-
-        <footer className="footer footer-center bg-base-300 text-base-content p-4">
-          <aside>
-            <p>Footer</p>
-          </aside>
-        </footer>
+      <body>
+        <div className="min-h-screen bg-gray-100">
+          <header className="bg-white shadow">
+            <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+              <h1 className="text-3xl font-bold text-gray-900">Fresh-Bun</h1>
+            </div>
+          </header>
+          <main>
+            <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+              {children}
+            </div>
+          </main>
+        </div>
       </body>
     </html>
   );

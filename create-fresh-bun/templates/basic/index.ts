@@ -6,6 +6,6 @@ Logger.setLogLevel(LogLevel.INFO);
 
 const server = await FreshBun.create({
   rootDir,
-}).serve();
+}).serve(Number.parseInt(Bun.env.BUN_PORT ?? "3000"));
 
 console.log(`Started server at http://localhost:${server.port}`);
