@@ -1,20 +1,21 @@
 import { useSignal } from "@preact/signals";
 import type { ComponentChildren } from "preact";
+import Button from "../../components/button";
 
 export default function (props: { children: ComponentChildren }) {
   const count = useSignal(0);
   return (
     <div>
       <div>
-        <button
+        <Button
           type={"button"}
           className={"btn btn-primary"}
           onClick={() => count.value--}
         >
           -
-        </button>
+        </Button>
         {count.value}
-        <button
+        <Button
           type={"button"}
           className={"btn btn-primary"}
           onClick={() => {
@@ -22,10 +23,9 @@ export default function (props: { children: ComponentChildren }) {
           }}
         >
           +
-        </button>
+        </Button>
       </div>
       <div>
-        SLOT 123:
         <div>{props.children}</div>
       </div>
     </div>
